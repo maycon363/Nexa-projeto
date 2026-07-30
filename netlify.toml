@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+# Assim o front-end continua chamando /api/ai, /api/signup etc, igual sempre
+# chamou — a Netlify só troca isso por trás dos panos pras funções de verdade.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
