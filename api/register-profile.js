@@ -1,18 +1,16 @@
-import { supabaseAdmin, ADMIN_EMAILS, DEFAULT_DAILY_LIMIT, getVerifiedUser } from './_supabaseAdmin.js'
+import { supabaseAdmin, ADMIN_EMAILS, DEFAULT_DAILY_LIMIT, getVerifiedUser, jsonResponse } from '../lib/supabaseAdmin.js'
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Método não permitido' })
-    return
+export async function handler(event) {
+  if (event.httpMethod !== 'POST') {
+    return jsonResponse(405, { error: 'Método não permitido' })
   }
 
-  const { user, error: authError } = await getVerifiedUser(req)
+  const { user, error: authError } = await getVerifiedUser(event)
   if (!user) {
-    res.status(401).json({ error: authError })
-    return
+    return jsonResponse(401, { error: authError })
   }
 
-  const { displayName, role, linkedinUrl } = req.body || {}
+  const { displayName, role, linkedinUrl } = event.body ? JSON.parse(event.body) : {}
 
   const identifyingFields = {
     display_name: (displayName || '').trim().slice(0, 120) || null,
@@ -32,7 +30,7 @@ export default async function handler(req, res) {
       .update(identifyingFields)
       .eq('user_id', user.id)
 
-    if (error) { res.status(500).json({ error: error.message }); return }
+    if (error) return jsonResponse(500, { error: error.message })
   } else {
     const isAdmin = ADMIN_EMAILS.includes((user.email || '').toLowerCase())
     const { error } = await supabaseAdmin
@@ -42,8 +40,8 @@ export default async function handler(req, res) {
         { onConflict: 'user_id' }
       )
 
-    if (error) { res.status(500).json({ error: error.message }); return }
+    if (error) return jsonResponse(500, { error: error.message })
   }
 
-  res.status(200).json({ ok: true })
+  return jsonResponse(200, { ok: true })
 }

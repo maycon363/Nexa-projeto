@@ -1,26 +1,22 @@
-import { supabaseAdmin, ADMIN_EMAILS, DEFAULT_DAILY_LIMIT } from './_supabaseAdmin.js'
+import { supabaseAdmin, ADMIN_EMAILS, DEFAULT_DAILY_LIMIT, jsonResponse } from '../lib/supabaseAdmin.js'
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Método não permitido' })
-    return
+export async function handler(event) {
+  if (event.httpMethod !== 'POST') {
+    return jsonResponse(405, { error: 'Método não permitido' })
   }
 
-  const { email, password, inviteCode, displayName, role, linkedinUrl } = req.body || {}
+  const { email, password, inviteCode, displayName, role, linkedinUrl } = event.body ? JSON.parse(event.body) : {}
 
   const expectedCode = process.env.SIGNUP_INVITE_CODE
   if (!expectedCode) {
-    res.status(500).json({ error: 'Cadastro não configurado no servidor.' })
-    return
+    return jsonResponse(500, { error: 'Cadastro não configurado no servidor.' })
   }
   if (!inviteCode || inviteCode.trim() !== expectedCode) {
-    res.status(403).json({ error: 'Código de convite inválido.' })
-    return
+    return jsonResponse(403, { error: 'Código de convite inválido.' })
   }
 
   if (!email || !password) {
-    res.status(400).json({ error: 'E-mail e senha são obrigatórios.' })
-    return
+    return jsonResponse(400, { error: 'E-mail e senha são obrigatórios.' })
   }
 
   const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
@@ -30,8 +26,7 @@ export default async function handler(req, res) {
   })
 
   if (createError) {
-    res.status(400).json({ error: createError.message })
-    return
+    return jsonResponse(400, { error: createError.message })
   }
 
   const user = created.user
@@ -53,9 +48,8 @@ export default async function handler(req, res) {
     )
 
   if (profileError) {
-    res.status(500).json({ error: `Conta criada, mas houve erro ao salvar o perfil: ${profileError.message}` })
-    return
+    return jsonResponse(500, { error: `Conta criada, mas houve erro ao salvar o perfil: ${profileError.message}` })
   }
 
-  res.status(200).json({ ok: true })
+  return jsonResponse(200, { ok: true })
 }
