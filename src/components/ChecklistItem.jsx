@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { EditIcon, ArrowUpIcon, ArrowDownIcon, TrashIcon } from './Icons.jsx'
 
 export default function ChecklistItem({ item, done, note, isFirst, isLast, onToggle, onNoteChange, onEditText, onMoveUp, onMoveDown, onRemove }) {
   const [showNote, setShowNote] = useState(Boolean(note))
@@ -55,10 +56,10 @@ export default function ChecklistItem({ item, done, note, isFirst, isLast, onTog
       </div>
 
       <div className="item-actions">
-        <button className="item-edit" onClick={() => setEditing(true)} title="Editar texto">✎</button>
-        <button className="item-move" onClick={onMoveUp} disabled={isFirst} title="Mover pra cima">▲</button>
-        <button className="item-move" onClick={onMoveDown} disabled={isLast} title="Mover pra baixo">▼</button>
-        <button className="item-remove" onClick={onRemove} title="Remover item">✕</button>
+        <button className="item-edit" onClick={() => setEditing(true)} title="Editar texto"><EditIcon /></button>
+        <button className="item-move" onClick={onMoveUp} disabled={isFirst} title="Mover pra cima"><ArrowUpIcon /></button>
+        <button className="item-move" onClick={onMoveDown} disabled={isLast} title="Mover pra baixo"><ArrowDownIcon /></button>
+        <button className="item-remove" onClick={onRemove} title="Remover item"><TrashIcon /></button>
       </div>
     </li>
   )

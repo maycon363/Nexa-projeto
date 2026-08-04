@@ -1,4 +1,9 @@
+// tela tem que ser removida 
+// - Tela de valores é poluido ja que o usuario consegue adicionar valores na tela de "Hoje" acho melhor 
+// deixa na tela de hoje já que la fica fixo para todos os dias.
+
 import { useState } from 'react'
+import { TrashIcon } from './Icons.jsx'
 
 export default function ValuesView({ data, todayCompletions, addValue, addValorItem, toggleToday, removeChecklistItem }) {
   const [name, setName] = useState('')
@@ -58,7 +63,9 @@ export default function ValuesView({ data, todayCompletions, addValue, addValorI
                   <div className="item-body">
                     <div className={`item-text${done ? ' done' : ''}`}>{item.text}</div>
                   </div>
-                  <button className="item-remove" onClick={() => removeChecklistItem(item.id)}>✕</button>
+                  <button className="item-remove" onClick={() => removeChecklistItem(item.id)} title="Remover item">
+                    <TrashIcon />
+                  </button>
                 </li>
               )
             })}

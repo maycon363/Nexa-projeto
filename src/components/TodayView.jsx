@@ -7,7 +7,7 @@ export default function TodayView({
   data, dayFor, progressForValue,
   toggleItem, setNote,
   addValorItem, addRotinaItem, removeChecklistItem,
-  updateItemText, moveItem
+  updateItemText, updateItemTime, moveItem
 }) {
   const weekDates = getWeekDates()
   const today = weekDates.find(d => d.isToday)
@@ -42,6 +42,7 @@ export default function TodayView({
           onAddItem={addRotinaItem}
           onRemoveItem={removeChecklistItem}
           onEditText={updateItemText}
+          onEditTime={updateItemTime}
           onMoveItem={moveItem}
         />
       </div>

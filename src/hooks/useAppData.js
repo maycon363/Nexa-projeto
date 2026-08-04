@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { defaultData } from '../data/defaultData.js'
 import { supabase } from '../services/supabaseClient.js'
 
-const LOCAL_STORAGE_KEY = 'nexa:data' 
+const LOCAL_STORAGE_KEY = 'nexa:data' // usado só para a migração única do que já existia no navegador
 
 function pad(n) { return String(n).padStart(2, '0') }
 function dateKey(d) {
@@ -14,6 +14,7 @@ function emptyDay() {
 }
 
 // Gera um id único mesmo quando duas chamadas acontecem no mesmo milissegundo
+// (ex: a IA sugerindo dois itens na mesma resposta).
 function uniqueId(prefix) {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return `${prefix}-${crypto.randomUUID()}`
@@ -22,12 +23,13 @@ function uniqueId(prefix) {
 }
 
 export function useAppData(userId) {
-  const [data, setData] = useState(null) 
+  const [data, setData] = useState(null) // null enquanto carrega do Supabase
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const todayKey = useMemo(() => dateKey(new Date()), [])
   const loadedRef = useRef(false)
   const saveTimer = useRef(null)
+  const pendingDataRef = useRef(null) // sempre aponta pro "data" mais recente ainda não salvo
 
   useEffect(() => {
     if (!userId) return
@@ -56,7 +58,7 @@ export function useAppData(userId) {
           const local = localStorage.getItem(LOCAL_STORAGE_KEY)
           if (local) initial = { ...initial, ...JSON.parse(local) }
         } catch {
-          // ignora — se o localStorage estiver corrompido, só segue com o padrão
+          // ignora
         }
 
         const { error: insertError } = await supabase
@@ -74,19 +76,54 @@ export function useAppData(userId) {
     load()
   }, [userId])
 
+  // Função que grava de verdade no Supabase — usada tanto pelo debounce
+  // normal quanto pelo "salvamento forçado" quando a aba sai de foco.
+  const flushSave = useCallback(async () => {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current)
+      saveTimer.current = null
+    }
+    if (!userId || !pendingDataRef.current) return
+
+    const toSave = pendingDataRef.current
+    pendingDataRef.current = null
+
+    const { error: upsertError } = await supabase
+      .from('nexa_data')
+      .upsert({ user_id: userId, data: toSave, updated_at: new Date().toISOString() })
+
+    if (upsertError) setError(upsertError.message)
+  }, [userId])
+
   useEffect(() => {
     if (!userId || !data || !loadedRef.current) return
 
-    if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(async () => {
-      const { error: upsertError } = await supabase
-        .from('nexa_data')
-        .upsert({ user_id: userId, data, updated_at: new Date().toISOString() })
-      if (upsertError) setError(upsertError.message)
-    }, 600)
+    pendingDataRef.current = data
 
-    return () => clearTimeout(saveTimer.current)
-  }, [data, userId])
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => {
+      flushSave()
+    }, 400)
+
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current)
+    }
+  }, [data, userId, flushSave])
+
+  // Celular costuma suspender/matar a aba assim que você troca de app ou
+  // tranca a tela — se isso acontecer antes do atraso acima disparar, a
+  // gravação nunca sai. Por isso, força salvar na hora nesses momentos.
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'hidden') flushSave()
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pagehide', flushSave)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pagehide', flushSave)
+    }
+  }, [flushSave])
 
   const dayFor = useCallback((key) => {
     if (!data) return emptyDay()
@@ -140,11 +177,12 @@ export function useAppData(userId) {
     return id
   }, [])
 
-  const addRotinaItem = useCallback((period, text, weekday) => {
+  // Agora aceita um horário opcional (formato "HH:MM") usado pro lembrete.
+  const addRotinaItem = useCallback((period, text, weekday, time = null) => {
     const id = uniqueId(`rotina-${period}`)
     setData(prev => (prev ? {
       ...prev,
-      checklistItems: [...prev.checklistItems, { id, kind: 'rotina', period, weekday, text, recurring: true }]
+      checklistItems: [...prev.checklistItems, { id, kind: 'rotina', period, weekday, text, time: time || null, recurring: true }]
     } : prev))
     return id
   }, [])
@@ -157,6 +195,14 @@ export function useAppData(userId) {
     setData(prev => (prev ? {
       ...prev,
       checklistItems: prev.checklistItems.map(i => (i.id === itemId ? { ...i, text } : i))
+    } : prev))
+  }, [])
+
+  // Atualiza (ou limpa, se time for vazio) o horário de lembrete de um item de rotina.
+  const updateItemTime = useCallback((itemId, time) => {
+    setData(prev => (prev ? {
+      ...prev,
+      checklistItems: prev.checklistItems.map(i => (i.id === itemId ? { ...i, time: time || null } : i))
     } : prev))
   }, [])
 
@@ -229,7 +275,7 @@ export function useAppData(userId) {
     data, todayKey, dayFor, loading, error,
     toggleItem, setNote,
     addValue, addValorItem, addRotinaItem, removeChecklistItem,
-    updateItemText, moveItem,
+    updateItemText, updateItemTime, moveItem,
     progressForValue, exportJSON, importJSON
   }
 }

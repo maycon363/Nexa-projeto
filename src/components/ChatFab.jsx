@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import AICompanion from './AICompanion.jsx'
 import NexaMark from './NexaMark.jsx'
 
-export default function ChatFab({ data, todayKey, todayWeekday, todayCompletions, userId, onToggle, onCreateValue, onAddValorItem, onAddRotinaItem, onEditItem, onRemoveItem }) {
+export default function ChatFab({ data, todayKey, todayWeekday, todayCompletions, userId, activeTab, onToggle, onCreateValue, onAddValorItem, onAddRotinaItem, onEditItem, onRemoveItem }) {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -17,22 +17,17 @@ export default function ChatFab({ data, todayKey, todayWeekday, todayCompletions
     <>
       <button className="chat-fab" onClick={() => setOpen(true)} aria-label="Abrir assistente">
         <span className="fab-shine" />
-        <svg className="fab-bot" width="32" height="32" viewBox="0 0 40 40" fill="none">
-          {/* antena */}
-          <line x1="20" y1="4" x2="20" y2="9" style={{ stroke: 'var(--color-bg)' }} strokeWidth="1.6" />
-          <circle className="fab-bot-antenna-tip" cx="20" cy="3.5" r="1.8" style={{ fill: 'var(--color-bg)' }} />
-
-          {/* cabeça / visor metálico */}
-          <rect x="7" y="9" width="26" height="21" rx="9" style={{ fill: 'var(--color-bg)' }} opacity="0.95" />
-          <rect x="7" y="9" width="26" height="21" rx="9" style={{ stroke: 'var(--color-green-bright)' }} strokeWidth="1.2" opacity="0.6" />
-
-          {/* linhas de painel, lateral */}
-          <line x1="9.5" y1="14" x2="9.5" y2="25" style={{ stroke: 'var(--color-green-bright)' }} strokeWidth="1" opacity="0.4" />
-          <line x1="30.5" y1="14" x2="30.5" y2="25" style={{ stroke: 'var(--color-green-bright)' }} strokeWidth="1" opacity="0.4" />
-
-          {/* trilho do visor escaneador */}
-          <rect x="11" y="17.5" width="18" height="5" rx="2.5" style={{ fill: 'rgba(0,0,0,0.4)' }} />
-          <circle className="fab-scan-dot" cx="13" cy="20" r="2.4" style={{ fill: 'var(--color-green-bright)' }} />
+        <svg className="fab-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M5 4.5h14a2.5 2.5 0 0 1 2.5 2.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17.5H5A2.5 2.5 0 0 1 2.5 15V7A2.5 2.5 0 0 1 5 4.5Z"
+            style={{ stroke: 'var(--color-bg)' }}
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+          <circle cx="8.5" cy="11" r="1.1" style={{ fill: 'var(--color-bg)' }} />
+          <circle cx="12" cy="11" r="1.1" style={{ fill: 'var(--color-bg)' }} />
+          <circle cx="15.5" cy="11" r="1.1" style={{ fill: 'var(--color-bg)' }} />
         </svg>
       </button>
 
@@ -54,6 +49,7 @@ export default function ChatFab({ data, todayKey, todayWeekday, todayCompletions
             todayWeekday={todayWeekday}
             todayCompletions={todayCompletions}
             userId={userId}
+            activeTab={activeTab}
             onToggle={onToggle}
             onCreateValue={onCreateValue}
             onAddValorItem={onAddValorItem}

@@ -1,3 +1,4 @@
+//netlify/functions/ai.js
 import { supabaseAdmin, ADMIN_EMAILS, DEFAULT_DAILY_LIMIT, getVerifiedUser, jsonResponse } from '../lib/supabaseAdmin.js'
 
 const CEREBRAS_URL = 'https://api.cerebras.ai/v1/chat/completions'
@@ -18,8 +19,45 @@ O objetivo principal é ECONOMIZAR o tempo do usuário: sempre que ele pedir pra
 adicionar, remover ou marcar algo, prefira fazer a ação diretamente em vez de só
 explicar como ele faria manualmente.
 
-Você recebe o estado atual (today_weekday = dia da semana de hoje, values, checklistItems
-com id/kind/period/weekday/valueId/text, e completions de hoje) e a mensagem do usuário.
+Você recebe o estado atual (current_screen = a aba que o usuário está vendo agora no
+app; screen_summary = um resumo já pronto do que está naquela tela, quando existir
+[ex: diagnóstico de valores no Histórico, ou o aprendizado do dia]; today_weekday =
+dia da semana de hoje; values; checklistItems com id/kind/period/weekday/valueId/text/time;
+e completions de hoje) e a mensagem do usuário.
+
+Use "screen_summary" pra responder perguntas sobre o que a pessoa está vendo na tela
+agora (ex: "o que significa esse número?", "qual valor eu mais tenho vivido?") sem
+precisar pedir mais informação — os dados já estão ali.
+
+Use "current_screen" pra dar ajuda relevante ao que a pessoa está olhando na hora:
+- "hoje": foco em marcar/adicionar/editar/remover itens de rotina e valores do dia.
+- "historico": ajude a interpretar diagnósticos, comparação semanal e tendências —
+  a pessoa pode estar tentando entender os próprios números, não só editar listas.
+- "valores": foco em criar/gerenciar valores e os itens de checklist deles.
+- "aprendizado" ou "aprenda": a pessoa pode estar só lendo, sem intenção de editar
+  nada — responda de forma mais conversacional nesse caso.
+- "sobre": provavelmente é uma pergunta sobre o próprio app, não uma ação de lista.
+
+NOVIDADE RECENTE — lembretes por notificação (importante você saber e contar quando
+for útil, não é só um detalhe técnico):
+- Agora dá pra colocar um horário em qualquer item de rotina, e o Nexa manda uma
+  notificação na hora certa — mesmo com o app fechado (funciona pelo navegador no
+  Android/desktop; no iPhone precisa antes "instalar" o app na tela de início, um
+  banner ensina isso automaticamente).
+- Pra ativar, a pessoa precisa ir no rodapé do app e tocar em "Ativar lembretes"
+  (uma vez só, aceitando a permissão de notificação do navegador).
+- Você pode e deve avisar sobre essa funcionalidade nestas situações:
+  1. Se o usuário perguntar algo tipo "o que mudou", "tem novidade", "o que você
+     faz agora", "quais são suas funções" — conte sobre os lembretes.
+  2. Se o usuário estiver adicionando um item de rotina (add_rotina_item) e NÃO
+     mencionar horário, você pode sugerir no "reply" (sem forçar) que ele pode
+     pedir pra você colocar um horário de lembrete, ou fazer isso direto na tela.
+  3. Se current_screen for "sobre" e a pergunta for genérica sobre o app.
+  4. Se o usuário perguntar diretamente sobre notificação, lembrete, alarme ou
+     "avisar" de alguma forma.
+- Não fique repetindo isso toda hora nem forçando em conversas que não têm nada a
+  ver — só menciona quando genuinamente ajuda ou quando perguntado.
+
 Responda SEMPRE em JSON puro, sem markdown, sem texto fora do JSON, no formato exato:
 
 {
@@ -28,7 +66,7 @@ Responda SEMPRE em JSON puro, sem markdown, sem texto fora do JSON, no formato e
     { "type": "toggle_item", "itemId": "id-do-item" },
     { "type": "create_value", "name": "Nome do valor novo", "description": "descrição curta (pode ser vazia)" },
     { "type": "add_valor_item", "valueId": "id-do-valor", "text": "texto do novo item" },
-    { "type": "add_rotina_item", "period": "manha|tarde|noite", "weekday": 0, "text": "texto do novo item" },
+    { "type": "add_rotina_item", "period": "manha|tarde|noite", "weekday": 0, "text": "texto do novo item", "time": "07:30" },
     { "type": "edit_item", "itemId": "id-do-item", "text": "novo texto do item" },
     { "type": "remove_item", "itemId": "id-do-item" }
   ]
@@ -56,7 +94,9 @@ Regras:
   "weekday" é opcional — se o usuário não especificar um dia, use o valor de
   today_weekday recebido no contexto (ou seja, assuma "hoje" por padrão). Se o
   usuário disser "amanhã", "segunda", etc., calcule o número certo (0-6) a partir
-  de today_weekday.
+  de today_weekday. "time" é opcional, no formato "HH:MM" (24h) — só inclua esse
+  campo se o usuário mencionar um horário explícito pro lembrete (ex: "às 7h",
+  "22:30"); caso contrário, omita o campo por completo.
 - Itens novos devem ser concretos e realizáveis em um dia, coerentes com o contexto
   pedido (rotina ou valor).
 - Quando o usuário pedir pra "trocar"/"remover e adicionar" algo, gere as duas ações

@@ -9,3 +9,12 @@
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
+
+[build]
+  functions = "netlify/functions"
+  publish = "dist"
+
+[functions."send-routine-pushes"]
+  schedule = "* * * * *"
+  
+  

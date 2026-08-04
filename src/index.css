@@ -954,3 +954,328 @@ button { font-family: inherit; }
   .toolbar { gap: 8px; }
   .toolbar button, .toolbar label { padding: 7px 12px; font-size: 12px; }
 }
+
+/* --- Substitui as regras antigas do robô do FAB (.fab-bot, .fab-bot-antenna-tip,
+   .fab-scan-dot e os @keyframes fab-bot-tilt / fab-bot-blip / fab-scan) — pode
+   apagar essas regras antigas do seu index.css, não são mais usadas. --- */
+
+.fab-icon { display: block; }
+
+/* --- Rodapé --- */
+.app-footer {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+}
+
+.app-footer-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.app-footer-actions button,
+.app-footer-actions label {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-gray);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.app-footer-actions button:hover,
+.app-footer-actions label:hover {
+  color: var(--color-white);
+  border-color: var(--color-gray-soft);
+}
+
+.app-footer-actions input[type="file"] { display: none; }
+
+.app-footer-signout {
+  margin-left: auto;
+  color: #e08585 !important;
+}
+
+.app-footer-note {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: var(--color-gray-soft);
+}
+
+@media (max-width: 480px) {
+  .app-footer-actions { flex-direction: column; }
+  .app-footer-signout { margin-left: 0; }
+}
+
+/* --- Barra de rolagem com a identidade do Nexa --- */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-green-dim) var(--color-bg);
+}
+
+/* Chrome, Edge, Safari (WebKit) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-green-dim);
+  border-radius: 999px;
+  border: 2px solid var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-green);
+}
+
+/* Dentro do chat, a barra fica mais fina (área menor) */
+.ai-log::-webkit-scrollbar { width: 6px; }
+
+/* --- Substitui as regras antigas do robô do FAB (.fab-bot, .fab-bot-antenna-tip,
+   .fab-scan-dot e os @keyframes fab-bot-tilt / fab-bot-blip / fab-scan) — pode
+   apagar essas regras antigas do seu index.css, não são mais usadas. --- */
+
+.fab-icon { display: block; }
+
+/* --- Rodapé --- */
+.app-footer {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+}
+
+.app-footer-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.app-footer-actions button,
+.app-footer-actions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-gray);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.item-actions button { display: inline-flex; align-items: center; justify-content: center; }
+
+.app-footer-actions button:hover,
+.app-footer-actions label:hover {
+  color: var(--color-white);
+  border-color: var(--color-gray-soft);
+}
+
+.app-footer-actions input[type="file"] { display: none; }
+
+.app-footer-signout {
+  margin-left: auto;
+  color: #e08585 !important;
+}
+
+.app-footer-note {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: var(--color-gray-soft);
+}
+
+@media (max-width: 480px) {
+  .app-footer-actions { flex-direction: column; }
+  .app-footer-signout { margin-left: 0; }
+}
+
+/* index.css — adicionar perto do body */
+html { scroll-behavior: smooth; }
+
+/* --- Scroll suave com a identidade do site --- */
+html { scroll-behavior: smooth; }
+
+/* --- Layout: rodapé grudado embaixo mesmo em telas com pouco conteúdo --- */
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+.app { flex: 1; display: flex; flex-direction: column; }
+
+/* --- Horário de lembrete nos itens de rotina --- */
+.item-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--color-green-bright);
+  background: var(--color-green-dim);
+  border-radius: 6px;
+  padding: 1px 6px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.item-time-input {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 3px 4px;
+  width: 92px;
+  flex-shrink: 0;
+}
+.item-time-input::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
+
+/* --- Rodapé: linha de direitos autorais + redes sociais --- */
+.app-footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+  font-size: 12px;
+  color: var(--color-gray-soft);
+}
+
+.app-footer-social { display: flex; align-items: center; gap: 14px; }
+.app-footer-social a {
+  color: var(--color-gray);
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+.app-footer-social a:hover { color: var(--color-green-bright); }
+
+@media (max-width: 640px) {
+  .checklist-item { flex-wrap: wrap; }
+  .item-actions { flex-wrap: wrap; gap: 6px; }
+  .item-time-input { order: -1; flex: 1 1 100%; width: auto; }
+}
+
+@media (max-width: 480px) {
+  .app-footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+.app-footer-push-on {
+  color: var(--color-green-bright) !important;
+  border-color: var(--color-green-dim) !important;
+}
+
+.navbar {
+  padding-top: calc(14px + env(safe-area-inset-top));
+  padding-left: calc(24px + env(safe-area-inset-left));
+  padding-right: calc(24px + env(safe-area-inset-right));
+}
+
+.app {
+  padding-left: calc(20px + env(safe-area-inset-left));
+  padding-right: calc(20px + env(safe-area-inset-right));
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+
+.chat-fab {
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  right: calc(24px + env(safe-area-inset-right));
+}
+
+.chat-drawer-overlay { padding-bottom: env(safe-area-inset-bottom); }
+
+@media (max-width: 480px) {
+  .chat-drawer { padding-bottom: env(safe-area-inset-bottom); }
+  .chat-fab { right: calc(16px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); }
+}
+
+/* --- Banner de instalação iOS --- */
+.ios-install-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-green-dim);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin: 16px 20px 0;
+}
+
+.ios-install-mark {
+  flex-shrink: 0;
+  color: var(--color-green-bright);
+  margin-top: 2px;
+}
+
+.ios-install-text { flex: 1; min-width: 0; }
+.ios-install-text strong { font-size: 14px; color: var(--color-white); }
+.ios-install-text p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-gray);
+}
+.ios-share-icon { display: inline-block; }
+
+.ios-install-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--color-gray-soft);
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ios-install-close:hover { color: var(--color-white); background: var(--color-surface-alt); }
+
+@media (max-width: 640px) {
+  .ios-install-banner { margin: 12px 16px 0; padding: 12px 14px; }
+}
+
+/* --- Destaque de novidade na tela Sobre --- */
+.update-highlight {
+  border-color: var(--color-green-dim);
+  background: linear-gradient(160deg, var(--color-green-dim), var(--color-surface) 65%);
+}
+
+.update-highlight-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.update-highlight-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(95, 215, 154, 0.14);
+  color: var(--color-green-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.update-eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-green-bright);
+  font-weight: 600;
+}

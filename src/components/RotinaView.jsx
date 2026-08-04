@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { EditIcon, ArrowUpIcon, ArrowDownIcon, TrashIcon, ClockIcon } from './Icons.jsx'
 
 const PERIODS = [
   { id: 'manha', label: 'Manhã' },
@@ -6,7 +7,7 @@ const PERIODS = [
   { id: 'noite', label: 'Noite' }
 ]
 
-function RotinaItemRow({ item, done, isFirst, isLast, onToggle, onEditText, onMoveUp, onMoveDown, onRemove }) {
+function RotinaItemRow({ item, done, isFirst, isLast, onToggle, onEditText, onEditTime, onMoveUp, onMoveDown, onRemove }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(item.text)
 
@@ -45,21 +46,30 @@ function RotinaItemRow({ item, done, isFirst, isLast, onToggle, onEditText, onMo
           />
         ) : (
           <div className={`item-text${done ? ' done' : ''}`} onClick={() => setEditing(true)} title="Clique para editar">
+            {item.time && <span className="item-time-badge"><ClockIcon size={11} /> {item.time}</span>}
             {item.text}
           </div>
         )}
       </div>
 
       <div className="item-actions">
-        <button className="item-move" onClick={onMoveUp} disabled={isFirst} title="Mover pra cima">▲</button>
-        <button className="item-move" onClick={onMoveDown} disabled={isLast} title="Mover pra baixo">▼</button>
-        <button className="item-remove" onClick={onRemove} title="Remover item">✕</button>
+        <input
+          type="time"
+          className="item-time-input"
+          value={item.time || ''}
+          onChange={e => onEditTime(e.target.value)}
+          title="Horário do lembrete"
+          aria-label="Horário do lembrete"
+        />
+        <button className="item-move" onClick={onMoveUp} disabled={isFirst} title="Mover pra cima"><ArrowUpIcon /></button>
+        <button className="item-move" onClick={onMoveDown} disabled={isLast} title="Mover pra baixo"><ArrowDownIcon /></button>
+        <button className="item-remove" onClick={onRemove} title="Remover item"><TrashIcon /></button>
       </div>
     </li>
   )
 }
 
-export default function RotinaView({ items, weekday, completions, onToggle, onAddItem, onRemoveItem, onEditText, onMoveItem }) {
+export default function RotinaView({ items, weekday, completions, onToggle, onAddItem, onRemoveItem, onEditText, onEditTime, onMoveItem }) {
   return (
     <div>
       {PERIODS.map(period => {
@@ -78,6 +88,7 @@ export default function RotinaView({ items, weekday, completions, onToggle, onAd
                   isLast={i === periodItems.length - 1}
                   onToggle={() => onToggle(item.id)}
                   onEditText={(text) => onEditText(item.id, text)}
+                  onEditTime={(time) => onEditTime(item.id, time)}
                   onMoveUp={() => onMoveItem(item.id, 'up')}
                   onMoveDown={() => onMoveItem(item.id, 'down')}
                   onRemove={() => onRemoveItem(item.id)}
@@ -96,12 +107,14 @@ export default function RotinaView({ items, weekday, completions, onToggle, onAd
 function AddRotinaItemForm({ onAdd, weekday }) {
   const [text, setText] = useState('')
   const [period, setPeriod] = useState('manha')
+  const [time, setTime] = useState('')
 
   function submit(e) {
     e.preventDefault()
     if (!text.trim()) return
-    onAdd(period, text.trim(), weekday)
+    onAdd(period, text.trim(), weekday, time || null)
     setText('')
+    setTime('')
   }
 
   return (
@@ -114,6 +127,14 @@ function AddRotinaItemForm({ onAdd, weekday }) {
         placeholder="Novo item da rotina…"
         value={text}
         onChange={e => setText(e.target.value)}
+      />
+      <input
+        type="time"
+        className="item-time-input"
+        value={time}
+        onChange={e => setTime(e.target.value)}
+        title="Horário do lembrete (opcional)"
+        aria-label="Horário do lembrete (opcional)"
       />
       <button type="submit">Adicionar</button>
     </form>

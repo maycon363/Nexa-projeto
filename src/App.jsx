@@ -3,6 +3,7 @@ import { useAuth } from './hooks/useAuth.js'
 import { useAppData } from './hooks/useAppData.js'
 import AuthScreen from './components/AuthScreen.jsx'
 import NavBar from './components/NavBar.jsx'
+import IosInstallBanner from './components/IosInstallBanner.jsx'
 import TodayView from './components/TodayView.jsx'
 import HistoryView from './components/HistoryView.jsx'
 import ValuesView from './components/ValuesView.jsx'
@@ -11,6 +12,7 @@ import NexaLoader from './components/NexaLoader.jsx'
 import LearnView from './components/LearnView.jsx'
 import ContinuousLearningView from './components/ContinuousLearningView.jsx'
 import AboutView from './components/AboutView.jsx'
+import Footer from './components/Footer.jsx'
 
 export default function App() {
   const { session, user, loading: authLoading, signIn, signOut } = useAuth()
@@ -35,7 +37,7 @@ function AuthenticatedApp({ user, onSignOut }) {
     data, todayKey, dayFor, loading, error,
     toggleItem, setNote,
     addValue, addValorItem, addRotinaItem, removeChecklistItem,
-    updateItemText, moveItem,
+    updateItemText, updateItemTime, moveItem,
     progressForValue, exportJSON, importJSON
   } = useAppData(user.id)
 
@@ -53,6 +55,8 @@ function AuthenticatedApp({ user, onSignOut }) {
 
   return (
     <div className="app-shell">
+      <IosInstallBanner />
+
       <NavBar active={tab} onChange={setTab} />
 
       <div className="app">
@@ -69,6 +73,7 @@ function AuthenticatedApp({ user, onSignOut }) {
             addRotinaItem={addRotinaItem}
             removeChecklistItem={removeChecklistItem}
             updateItemText={updateItemText}
+            updateItemTime={updateItemTime}
             moveItem={moveItem}
           />
         )}
@@ -90,14 +95,11 @@ function AuthenticatedApp({ user, onSignOut }) {
         {tab === 'aprendizado' && <ContinuousLearningView />}
         {tab === 'sobre' && <AboutView />}
 
-        <div className="toolbar">
-          <button onClick={exportJSON}>Exportar JSON</button>
-          <label>
-            Importar JSON
-            <input type="file" accept="application/json" onChange={e => e.target.files[0] && importJSON(e.target.files[0])} />
-          </label>
-          <button onClick={onSignOut}>Sair</button>
-        </div>
+        <Footer
+          onExport={exportJSON}
+          onImport={e => e.target.files[0] && importJSON(e.target.files[0])}
+          onSignOut={onSignOut}
+        />
       </div>
 
       <ChatFab
@@ -106,6 +108,7 @@ function AuthenticatedApp({ user, onSignOut }) {
         todayWeekday={new Date().getDay()}
         todayCompletions={today.completions}
         userId={user.id}
+        activeTab={tab}
         onToggle={toggleItem}
         onCreateValue={addValue}
         onAddValorItem={addValorItem}

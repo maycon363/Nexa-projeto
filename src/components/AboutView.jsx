@@ -1,4 +1,5 @@
 import NexaMark from './NexaMark.jsx'
+import { BellIcon } from './Icons.jsx'
 
 export default function AboutView() {
   return (
@@ -29,6 +30,34 @@ export default function AboutView() {
         </p>
       </section>
 
+      <section className="value-section update-highlight">
+        <div className="update-highlight-head">
+          <span className="update-highlight-icon"><BellIcon size={18} /></span>
+          <div>
+            <span className="update-eyebrow">Novidade</span>
+            <h3 className="about-subtitle" style={{ margin: '2px 0 0' }}>Lembretes por notificação</h3>
+          </div>
+        </div>
+        <p className="about-p">
+          Agora dá pra colocar um <strong>horário</strong> em qualquer item da rotina
+          (na aba Hoje, junto do item) e receber uma notificação na hora certa,
+          mesmo com o app fechado. É útil pra rotina que depende de lembrança, tipo
+          "tomar remédio às 8h" ou "10min sem celular às 22h30".
+        </p>
+        <p className="about-p">
+          Pra ativar, vai no rodapé do app e toca em <strong>"Ativar lembretes"</strong>.
+          O navegador vai pedir permissão de notificação, aceitando, o Nexa passa a
+          avisar você direto pelo sistema, sem precisar estar com o app aberto.
+        </p>
+        <p className="about-p">
+          <strong>No iPhone</strong> tem um passo a mais: o iOS só entrega notificação
+          pra apps "instalados" na tela de início, não pelo Safari aberto direto. Se
+          você usa iPhone, vai aparecer um aviso ensinando a instalar (Compartilhar →
+          Adicionar à Tela de Início) depois disso os lembretes funcionam normalmente,
+          igual um app nativo.
+        </p>
+      </section>
+
       <section className="value-section">
         <h3 className="about-subtitle">O papel da IA</h3>
         <p className="about-p">
@@ -37,8 +66,9 @@ export default function AboutView() {
           Em vez de criar item por item clicando, você pode pedir pra ele montar uma
           rotina inteira, criar um valor novo já com os itens de checklist, marcar ou
           desmarcar vários itens de uma vez, editar textos ou limpar o que não faz mais
-          sentido, tudo numa frase. Dá uma olhada na aba <strong>Aprenda</strong> pra
-          ver exemplos prontos.
+          sentido, tudo numa frase. Ele também consegue colocar horário de lembrete
+          direto pelo chat, se você pedir (ex: "adiciona ler livro às 21h"). Dá uma
+          olhada na aba <strong>Aprenda</strong> pra ver exemplos prontos.
         </p>
       </section>
 
@@ -49,7 +79,9 @@ export default function AboutView() {
           pronta). Login e dados salvos no Supabase (Postgres com Row Level Security,
           cada pessoa só acessa o que é dela). O assistente roda num modelo open-weight
           via Cerebras, atrás de uma função serverless que confere quem está chamando e
-          controla um limite diário de mensagens por pessoa.
+          controla um limite diário de mensagens por pessoa. Os lembretes usam Web Push
+          com service worker, e o app pode ser instalado na tela de início (PWA) tanto
+          no Android quanto no iPhone.
         </p>
       </section>
     </div>

@@ -2,8 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { askAssistant } from '../services/aiService.js'
 import NexaLoader from './NexaLoader.jsx'
 import NexaMark from './NexaMark.jsx'
+import { getTodayLearning } from '../data/dailyLearnings.js'
 
-const DEFAULT_GREETING = { role: 'assistant', content: 'Oi! Posso marcar, adicionar ou remover itens da sua rotina e valores. É só me pedir.' }
+const DEFAULT_GREETING = {
+  role: 'assistant',
+  content: 'Oi! Eu vejo em qual tela do app você está, então posso ajudar com o que estiver ali na hora — marcar, adicionar, editar ou remover itens, ou só explicar o que você tá vendo.'
+}
 
 function chatStorageKey(userId) {
   return `nexa:chatLog:${userId}`
@@ -20,7 +24,41 @@ function loadStoredLog(userId) {
   }
 }
 
-export default function AICompanion({ data, todayKey, todayWeekday, todayCompletions, userId, onToggle, onCreateValue, onAddValorItem, onAddRotinaItem, onEditItem, onRemoveItem }) {
+// Resumos curtos, calculados a partir de dados que já estão no navegador (sem
+// nenhuma chamada extra) — só pra dar contexto do que a pessoa está vendo
+// naquela tela específica, sem mandar tudo sempre.
+function computeDiagnosticsSummary(data) {
+  const dayKeys = Object.keys(data.dailyCycles).sort((a, b) => b.localeCompare(a)).slice(0, 30)
+  if (dayKeys.length === 0) return 'Ainda não há dias registrados no Histórico.'
+
+  const results = data.values.map(value => {
+    const items = data.checklistItems.filter(i => i.kind === 'valor' && i.valueId === value.id)
+    if (items.length === 0) return null
+    let done = 0
+    const total = items.length * dayKeys.length
+    dayKeys.forEach(key => {
+      const completions = data.dailyCycles[key]?.completions || {}
+      items.forEach(item => { if (completions[item.id]) done += 1 })
+    })
+    return { name: value.name, pct: Math.round((done / total) * 100) }
+  }).filter(Boolean).sort((a, b) => b.pct - a.pct)
+
+  if (results.length === 0) return 'Ainda não há valores com itens suficientes pra diagnosticar.'
+  const top = results.slice(0, 3).map(r => `${r.name} ${r.pct}%`).join(', ')
+  const bottom = results.slice(-3).map(r => `${r.name} ${r.pct}%`).join(', ')
+  return `Diagnóstico de valores (últimos ${dayKeys.length} dias) — mais fortes: ${top}. A desenvolver: ${bottom}.`
+}
+
+function buildScreenSummary(activeTab, data) {
+  if (activeTab === 'historico') return computeDiagnosticsSummary(data)
+  if (activeTab === 'aprendizado') {
+    const learning = getTodayLearning()
+    return `Aprendizado de hoje na tela: "${learning.title}" — ${learning.body}`
+  }
+  return null
+}
+
+export default function AICompanion({ data, todayKey, todayWeekday, todayCompletions, userId, activeTab, onToggle, onCreateValue, onAddValorItem, onAddRotinaItem, onEditItem, onRemoveItem }) {
   const [log, setLog] = useState(() => loadStoredLog(userId))
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -28,13 +66,11 @@ export default function AICompanion({ data, todayKey, todayWeekday, todayComplet
   const [limitReached, setLimitReached] = useState(false)
   const logRef = useRef(null)
 
-  // Salva a conversa a cada mudança, pra sobreviver a recarregar a página ou
-  // fechar e abrir o chat de novo.
   useEffect(() => {
     try {
       localStorage.setItem(chatStorageKey(userId), JSON.stringify(log))
     } catch {
-      // se o localStorage estiver cheio/bloqueado, só segue sem persistir
+      // localStorage cheio/bloqueado: só segue sem persistir
     }
   }, [log, userId])
 
@@ -44,7 +80,6 @@ export default function AICompanion({ data, todayKey, todayWeekday, todayComplet
     }
   }, [log, loading])
 
-  // Recebe o texto de exemplo clicado na aba "Aprenda" e já preenche o campo.
   useEffect(() => {
     function handlePrefill(e) {
       if (typeof e.detail === 'string') setInput(e.detail)
@@ -55,7 +90,9 @@ export default function AICompanion({ data, todayKey, todayWeekday, todayComplet
 
   function buildContext() {
     return {
-      today_weekday: todayWeekday, // 0=domingo ... 6=sábado
+      current_screen: activeTab,
+      screen_summary: buildScreenSummary(activeTab, data),
+      today_weekday: todayWeekday,
       values: data.values,
       checklistItems: data.checklistItems,
       completions: todayCompletions
@@ -94,7 +131,8 @@ export default function AICompanion({ data, todayKey, todayWeekday, todayComplet
         else failures.push(action)
       } else if (action.type === 'add_rotina_item' && action.period && action.text) {
         const weekday = typeof action.weekday === 'number' ? action.weekday : todayWeekday
-        onAddRotinaItem(action.period, action.text, weekday)
+        const time = typeof action.time === 'string' && /^\d{2}:\d{2}$/.test(action.time) ? action.time : null
+        onAddRotinaItem(action.period, action.text, weekday, time)
       } else if (action.type === 'edit_item' && action.itemId && action.text) {
         if (itemExists(action.itemId)) onEditItem(action.itemId, action.text)
         else failures.push(action)
