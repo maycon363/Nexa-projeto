@@ -1,0 +1,37 @@
+[33mcommit 314f359d2907ec9adec1d2d0c7edea8d5a245adf[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Maycon Borges <mayconborgesgato717@gmail.com>
+Date:   Tue Aug 4 20:44:54 2026 -0300
+
+    notification update
+
+ index.html                                  |  12 [32m+[m
+ netlify.toml                                |  11 [32m+[m[31m-[m
+ netlify/functions/ai.js                     |  48 [32m+++[m[31m-[m
+ netlify/functions/save-push-subscription.js |  44 [32m++++[m
+ netlify/functions/send-routine-pushes.js    | 104 [32m+++++++++[m
+ netlify/functions/vapid-public-key.js       |   7 [32m+[m
+ package-lock.json                           | 156 [32m++++++++++++[m[31m-[m
+ package.json                                |   3 [32m+[m[31m-[m
+ public/icons/icon-192.png                   | Bin [31m0[m -> [32m2228[m bytes
+ public/icons/icon-512.png                   | Bin [31m0[m -> [32m5644[m bytes
+ public/icons/icon-maskable-192.png          | Bin [31m0[m -> [32m3279[m bytes
+ public/icons/icon-maskable-512.png          | Bin [31m0[m -> [32m9358[m bytes
+ public/manifest.json                        |  17 [32m++[m
+ public/sw.js                                |  47 [32m++++[m
+ src/App.jsx                                 |  21 [32m+[m[31m-[m
+ src/components/AICompanion.jsx              |  54 [32m++++[m[31m-[m
+ src/components/AboutView.jsx                |  38 [32m+++[m[31m-[m
+ src/components/ChatFab.jsx                  |  30 [32m++[m[31m-[m
+ src/components/ChecklistItem.jsx            |   9 [32m+[m[31m-[m
+ src/components/Footer.jsx                   |  75 [32m+++++++[m
+ src/components/Icons.jsx                    | 119 [32m++++++++++[m
+ src/components/IosInstallBanner.jsx         |  47 [32m++++[m
+ src/components/RotinaView.jsx               |  33 [32m++[m[31m-[m
+ src/components/TodayView.jsx                |   3 [32m+[m[31m-[m
+ src/components/ValuesView.jsx               |   9 [32m+[m[31m-[m
+ src/hooks/useAppData.js                     |  74 [32m+++++[m[31m--[m
+ src/hooks/useRoutineReminders.js            |  63 [32m++++++[m
+ src/index.css                               | 325 [32m++++++++++++++++++++++++++++[m
+ src/main.jsx                                |  11 [32m+[m
+ src/services/pushService.js                 |  78 [32m+++++++[m
+ 30 files changed, 1366 insertions(+), 72 deletions(-)

@@ -23,6 +23,8 @@
 
 html, body, #root { height: 100%; }
 
+html { scroll-behavior: smooth; }
+
 body {
   margin: 0;
   background: var(--color-bg);
@@ -126,7 +128,7 @@ button { font-family: inherit; }
   padding: 5px 8px;
 }
 
-.add-item-row { display: flex; gap: 8px; padding: 14px 0 16px; }
+.add-item-row { display: flex; gap: 8px; padding: 14px 0 16px; align-items: center; flex-wrap: wrap; }
 .add-item-row input {
   flex: 1;
   background: var(--color-surface-alt);
@@ -275,7 +277,7 @@ button { font-family: inherit; }
 .nexa-mark path { stroke: currentColor; }
 .navbar-brand-mark { color: var(--color-green-bright); flex-shrink: 0; }
 
-.app-shell { min-height: 100%; }
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; }
 
 .navbar {
   position: sticky;
@@ -285,6 +287,9 @@ button { font-family: inherit; }
   align-items: center;
   gap: 28px;
   padding: 14px 24px;
+  padding-top: calc(14px + env(safe-area-inset-top));
+  padding-left: calc(24px + env(safe-area-inset-left));
+  padding-right: calc(24px + env(safe-area-inset-right));
   background: rgba(16, 18, 17, 0.85);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--color-border);
@@ -299,7 +304,7 @@ button { font-family: inherit; }
   gap: 2px;
 }
 
-.navbar-tabs { display: flex; gap: 4px; }
+.navbar-tabs { display: flex; gap: 4px; overflow-x: auto; }
 .navbar-tab {
   background: none;
   border: none;
@@ -416,6 +421,8 @@ button { font-family: inherit; }
   position: fixed;
   right: 24px;
   bottom: 24px;
+  right: calc(24px + env(safe-area-inset-right));
+  bottom: calc(24px + env(safe-area-inset-bottom));
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -450,29 +457,7 @@ button { font-family: inherit; }
   pointer-events: none;
 }
 
-.fab-bot { animation: fab-bot-tilt 5s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
-
-@keyframes fab-bot-tilt {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(2deg); }
-}
-
-.fab-bot-antenna-tip { animation: fab-bot-blip 1.6s ease-in-out infinite; }
-
-@keyframes fab-bot-blip {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
-
-.fab-scan-dot {
-  filter: drop-shadow(0 0 3px var(--color-green-bright));
-  animation: fab-scan 2.2s ease-in-out infinite;
-}
-
-@keyframes fab-scan {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(14px); }
-}
+.fab-icon { display: block; }
 
 .chat-drawer-overlay {
   position: fixed;
@@ -482,6 +467,7 @@ button { font-family: inherit; }
   justify-content: flex-end;
   align-items: flex-end;
   z-index: 30;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .chat-drawer-overlay.chat-drawer-hidden {
@@ -663,8 +649,6 @@ button { font-family: inherit; }
   margin-bottom: 20px;
 }
 
-.navbar-tabs { overflow-x: auto; }
-
 .about-header {
   display: flex;
   align-items: center;
@@ -796,7 +780,6 @@ button { font-family: inherit; }
   margin: 0;
 }
 
-
 .compare-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -888,164 +871,6 @@ button { font-family: inherit; }
 .trend-dot.rotina { background: var(--color-green); }
 .trend-dot.valores { background: #7aa3d9; }
 
-@media (max-width: 640px) {
-  .app { padding: 28px 16px 96px; }
-
-  .navbar {
-    padding: 12px 16px;
-    gap: 16px;
-  }
-
-  .navbar-tab {
-    padding: 7px 12px;
-    font-size: 13px;
-  }
-
-  .navbar-tabs-desktop { display: none; }
-  .navbar-menu-btn { display: flex; }
-
-  .value-section { padding: 18px 16px 6px; }
-  .value-section-head h2 { font-size: 19px; }
-
-  .day-heading { font-size: 22px; }
-
-  .day-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; overflow-x: visible; }
-  .day-tab { padding: 7px 6px; font-size: 12px; text-align: center; }
-
-  .add-item-row { flex-wrap: wrap; gap: 8px; }
-  .add-item-row input { flex: 1 1 100%; order: 1; }
-  .add-item-row select { flex: 1 1 auto; min-width: 0; order: 2; }
-  .add-item-row button { flex: 0 0 auto; order: 3; }
-
-  .checklist-item { flex-wrap: wrap; }
-  .item-body { flex: 1 1 calc(100% - 34px); }
-  .item-actions { margin-left: 34px; margin-top: 6px; }
-  .item-move, .item-edit, .item-remove { padding: 6px 7px; font-size: 11px; }
-
-  .diag-grid,
-  .compare-grid,
-  .learning-archive { grid-template-columns: 1fr; }
-
-  .chat-fab { right: 16px; bottom: 16px; }
-}
-
-@media (max-width: 480px) {
-  .chat-drawer-overlay { align-items: flex-end; }
-
-  .chat-drawer {
-    width: 100%;
-    max-width: 100%;
-    max-height: 85vh;
-    margin: 0;
-    border-radius: 20px 20px 0 0;
-  }
-
-  .auth-card { padding: 26px 20px; }
-
-  .checklist-item { gap: 8px; }
-  .item-text { font-size: 14px; }
-
-  .compare-card-pct { font-size: 26px; }
-  .learning-today-title { font-size: 20px; }
-}
-
-@media (max-width: 360px) {
-  .navbar-brand-text { display: none; } 
-  .toolbar { gap: 8px; }
-  .toolbar button, .toolbar label { padding: 7px 12px; font-size: 12px; }
-}
-
-/* --- Substitui as regras antigas do robô do FAB (.fab-bot, .fab-bot-antenna-tip,
-   .fab-scan-dot e os @keyframes fab-bot-tilt / fab-bot-blip / fab-scan) — pode
-   apagar essas regras antigas do seu index.css, não são mais usadas. --- */
-
-.fab-icon { display: block; }
-
-/* --- Rodapé --- */
-.app-footer {
-  margin-top: 40px;
-  padding-top: 24px;
-  border-top: 1px solid var(--color-border);
-}
-
-.app-footer-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.app-footer-actions button,
-.app-footer-actions label {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  color: var(--color-gray);
-  border-radius: 999px;
-  padding: 8px 16px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.app-footer-actions button:hover,
-.app-footer-actions label:hover {
-  color: var(--color-white);
-  border-color: var(--color-gray-soft);
-}
-
-.app-footer-actions input[type="file"] { display: none; }
-
-.app-footer-signout {
-  margin-left: auto;
-  color: #e08585 !important;
-}
-
-.app-footer-note {
-  margin: 14px 0 0;
-  font-size: 12px;
-  color: var(--color-gray-soft);
-}
-
-@media (max-width: 480px) {
-  .app-footer-actions { flex-direction: column; }
-  .app-footer-signout { margin-left: 0; }
-}
-
-/* --- Barra de rolagem com a identidade do Nexa --- */
-
-/* Firefox */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-green-dim) var(--color-bg);
-}
-
-/* Chrome, Edge, Safari (WebKit) */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--color-bg);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-green-dim);
-  border-radius: 999px;
-  border: 2px solid var(--color-bg);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-green);
-}
-
-/* Dentro do chat, a barra fica mais fina (área menor) */
-.ai-log::-webkit-scrollbar { width: 6px; }
-
-/* --- Substitui as regras antigas do robô do FAB (.fab-bot, .fab-bot-antenna-tip,
-   .fab-scan-dot e os @keyframes fab-bot-tilt / fab-bot-blip / fab-scan) — pode
-   apagar essas regras antigas do seu index.css, não são mais usadas. --- */
-
-.fab-icon { display: block; }
-
 /* --- Rodapé --- */
 .app-footer {
   margin-top: 40px;
@@ -1094,47 +919,10 @@ button { font-family: inherit; }
   color: var(--color-gray-soft);
 }
 
-@media (max-width: 480px) {
-  .app-footer-actions { flex-direction: column; }
-  .app-footer-signout { margin-left: 0; }
+.app-footer-push-on {
+  color: var(--color-green-bright) !important;
+  border-color: var(--color-green-dim) !important;
 }
-
-/* index.css — adicionar perto do body */
-html { scroll-behavior: smooth; }
-
-/* --- Scroll suave com a identidade do site --- */
-html { scroll-behavior: smooth; }
-
-/* --- Layout: rodapé grudado embaixo mesmo em telas com pouco conteúdo --- */
-.app-shell { display: flex; flex-direction: column; min-height: 100vh; }
-.app { flex: 1; display: flex; flex-direction: column; }
-
-/* --- Horário de lembrete nos itens de rotina --- */
-.item-time-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 11px;
-  color: var(--color-green-bright);
-  background: var(--color-green-dim);
-  border-radius: 6px;
-  padding: 1px 6px;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
-.item-time-input {
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  color: var(--color-white);
-  font-family: var(--font-body);
-  font-size: 12px;
-  padding: 3px 4px;
-  width: 92px;
-  flex-shrink: 0;
-}
-.item-time-input::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
 
 /* --- Rodapé: linha de direitos autorais + redes sociais --- */
 .app-footer-bottom {
@@ -1159,44 +947,98 @@ html { scroll-behavior: smooth; }
 }
 .app-footer-social a:hover { color: var(--color-green-bright); }
 
-@media (max-width: 640px) {
-  .checklist-item { flex-wrap: wrap; }
-  .item-actions { flex-wrap: wrap; gap: 6px; }
-  .item-time-input { order: -1; flex: 1 1 100%; width: auto; }
+/* --- Barra de rolagem com a identidade do Nexa --- */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-green-dim) var(--color-bg);
 }
 
-@media (max-width: 480px) {
-  .app-footer-bottom { flex-direction: column; align-items: flex-start; }
+/* Chrome, Edge, Safari (WebKit) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-.app-footer-push-on {
-  color: var(--color-green-bright) !important;
-  border-color: var(--color-green-dim) !important;
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
 }
 
-.navbar {
-  padding-top: calc(14px + env(safe-area-inset-top));
-  padding-left: calc(24px + env(safe-area-inset-left));
-  padding-right: calc(24px + env(safe-area-inset-right));
+::-webkit-scrollbar-thumb {
+  background: var(--color-green-dim);
+  border-radius: 999px;
+  border: 2px solid var(--color-bg);
 }
 
-.app {
-  padding-left: calc(20px + env(safe-area-inset-left));
-  padding-right: calc(20px + env(safe-area-inset-right));
-  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-green);
 }
 
-.chat-fab {
-  bottom: calc(24px + env(safe-area-inset-bottom));
-  right: calc(24px + env(safe-area-inset-right));
+/* Dentro do chat, a barra fica mais fina (área menor) */
+.ai-log::-webkit-scrollbar { width: 6px; }
+
+/* --- Campo de horário próprio (substitui o input nativo cru) --- */
+.time-field {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 12px;
+  color: var(--color-gray);
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
-.chat-drawer-overlay { padding-bottom: env(safe-area-inset-bottom); }
-
-@media (max-width: 480px) {
-  .chat-drawer { padding-bottom: env(safe-area-inset-bottom); }
-  .chat-fab { right: calc(16px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); }
+.time-field.has-value {
+  color: var(--color-green-bright);
+  border-color: var(--color-green-dim);
+  background: var(--color-green-dim);
+  padding-right: 22px; /* espaço reservado pro botão de limpar */
 }
+
+.time-field-label { pointer-events: none; }
+
+/* O input real fica invisível, mas ocupa o espaço todo do pill — é nele que
+   o clique realmente acontece, então o seletor nativo abre normalmente em
+   qualquer navegador/celular, só que com nosso visual por cima. */
+.time-field-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+
+.time-field-clear {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2; /* fica acima do input invisível, senão o clique abriria o seletor */
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--color-green-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.time-field-clear:hover { background: rgba(0, 0, 0, 0.4); }
 
 /* --- Banner de instalação iOS --- */
 .ios-install-banner {
@@ -1241,10 +1083,6 @@ html { scroll-behavior: smooth; }
 }
 .ios-install-close:hover { color: var(--color-white); background: var(--color-surface-alt); }
 
-@media (max-width: 640px) {
-  .ios-install-banner { margin: 12px 16px 0; padding: 12px 14px; }
-}
-
 /* --- Destaque de novidade na tela Sobre --- */
 .update-highlight {
   border-color: var(--color-green-dim);
@@ -1278,4 +1116,94 @@ html { scroll-behavior: smooth; }
   text-transform: uppercase;
   color: var(--color-green-bright);
   font-weight: 600;
+}
+
+/* ================================================================
+   MEDIA QUERIES — mantidas juntas no final pra facilitar manutenção
+   ================================================================ */
+
+@media (max-width: 640px) {
+  .app { padding: 28px 16px 96px; }
+  .app {
+    padding-left: calc(20px + env(safe-area-inset-left));
+    padding-right: calc(20px + env(safe-area-inset-right));
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .navbar {
+    padding: 12px 16px;
+    padding-top: calc(12px + env(safe-area-inset-top));
+    padding-left: calc(16px + env(safe-area-inset-left));
+    padding-right: calc(16px + env(safe-area-inset-right));
+    gap: 16px;
+  }
+
+  .navbar-tab {
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+
+  .navbar-tabs-desktop { display: none; }
+  .navbar-menu-btn { display: flex; }
+
+  .value-section { padding: 18px 16px 6px; }
+  .value-section-head h2 { font-size: 19px; }
+
+  .day-heading { font-size: 22px; }
+
+  .day-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; overflow-x: visible; }
+  .day-tab { padding: 7px 6px; font-size: 12px; text-align: center; }
+
+  .add-item-row { flex-wrap: wrap; gap: 8px; }
+  .add-item-row input { flex: 1 1 100%; order: 1; }
+  .add-item-row select { flex: 1 1 auto; min-width: 0; order: 2; }
+  .add-item-row .time-field { order: 3; }
+  .add-item-row button { flex: 0 0 auto; order: 4; }
+
+  .checklist-item { flex-wrap: wrap; }
+  .item-body { flex: 1 1 calc(100% - 34px); }
+  .item-actions { margin-left: 34px; margin-top: 6px; flex-wrap: wrap; gap: 6px; }
+  .item-move, .item-edit, .item-remove { padding: 6px 7px; font-size: 11px; }
+  .time-field { order: -1; flex: 1 1 100%; justify-content: center; }
+
+  .diag-grid,
+  .compare-grid,
+  .learning-archive { grid-template-columns: 1fr; }
+
+  .chat-fab { right: 16px; bottom: 16px; }
+  .chat-fab { right: calc(16px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); }
+
+  .app-footer-actions { flex-direction: column; }
+
+  .ios-install-banner { margin: 12px 16px 0; padding: 12px 14px; }
+}
+
+@media (max-width: 480px) {
+  .chat-drawer-overlay { align-items: flex-end; }
+
+  .chat-drawer {
+    width: 100%;
+    max-width: 100%;
+    max-height: 85vh;
+    margin: 0;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .auth-card { padding: 26px 20px; }
+
+  .checklist-item { gap: 8px; }
+  .item-text { font-size: 14px; }
+
+  .compare-card-pct { font-size: 26px; }
+  .learning-today-title { font-size: 20px; }
+
+  .app-footer-signout { margin-left: 0; }
+  .app-footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 360px) {
+  .navbar-brand-text { display: none; }
+  .toolbar { gap: 8px; }
+  .toolbar button, .toolbar label { padding: 7px 12px; font-size: 12px; }
 }

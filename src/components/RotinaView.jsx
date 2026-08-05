@@ -1,11 +1,43 @@
 import { useState } from 'react'
-import { EditIcon, ArrowUpIcon, ArrowDownIcon, TrashIcon, ClockIcon } from './Icons.jsx'
+import { EditIcon, ArrowUpIcon, ArrowDownIcon, TrashIcon, ClockIcon, CloseIcon } from './Icons.jsx'
 
 const PERIODS = [
   { id: 'manha', label: 'Manhã' },
   { id: 'tarde', label: 'Tarde' },
   { id: 'noite', label: 'Noite' }
 ]
+
+// Campo de horário próprio: o que aparece na tela é sempre o mesmo, em
+// qualquer navegador/celular — um pill com nosso ícone de relógio. Por baixo,
+// um <input type="time"> de verdade fica invisível cobrindo o pill, então
+// tocar nele abre o seletor nativo do sistema (isso sim funciona igual em
+// qualquer lugar, já que é um clique direto no controle real).
+function TimeField({ value, onChange, ariaLabel }) {
+  return (
+    <span className={`time-field${value ? ' has-value' : ''}`}>
+      <ClockIcon size={12} />
+      <span className="time-field-label">{value || 'Horário'}</span>
+      <input
+        type="time"
+        className="time-field-input"
+        value={value || ''}
+        onChange={e => onChange(e.target.value)}
+        aria-label={ariaLabel}
+      />
+      {value && (
+        <button
+          type="button"
+          className="time-field-clear"
+          onClick={() => onChange('')}
+          aria-label="Remover horário"
+          title="Remover horário"
+        >
+          <CloseIcon size={9} />
+        </button>
+      )}
+    </span>
+  )
+}
 
 function RotinaItemRow({ item, done, isFirst, isLast, onToggle, onEditText, onEditTime, onMoveUp, onMoveDown, onRemove }) {
   const [editing, setEditing] = useState(false)
@@ -46,20 +78,16 @@ function RotinaItemRow({ item, done, isFirst, isLast, onToggle, onEditText, onEd
           />
         ) : (
           <div className={`item-text${done ? ' done' : ''}`} onClick={() => setEditing(true)} title="Clique para editar">
-            {item.time && <span className="item-time-badge"><ClockIcon size={11} /> {item.time}</span>}
             {item.text}
           </div>
         )}
       </div>
 
       <div className="item-actions">
-        <input
-          type="time"
-          className="item-time-input"
+        <TimeField
           value={item.time || ''}
-          onChange={e => onEditTime(e.target.value)}
-          title="Horário do lembrete"
-          aria-label="Horário do lembrete"
+          onChange={onEditTime}
+          ariaLabel={`Horário do lembrete para ${item.text}`}
         />
         <button className="item-move" onClick={onMoveUp} disabled={isFirst} title="Mover pra cima"><ArrowUpIcon /></button>
         <button className="item-move" onClick={onMoveDown} disabled={isLast} title="Mover pra baixo"><ArrowDownIcon /></button>
@@ -128,14 +156,7 @@ function AddRotinaItemForm({ onAdd, weekday }) {
         value={text}
         onChange={e => setText(e.target.value)}
       />
-      <input
-        type="time"
-        className="item-time-input"
-        value={time}
-        onChange={e => setTime(e.target.value)}
-        title="Horário do lembrete (opcional)"
-        aria-label="Horário do lembrete (opcional)"
-      />
+      <TimeField value={time} onChange={setTime} ariaLabel="Horário do lembrete (opcional)" />
       <button type="submit">Adicionar</button>
     </form>
   )
