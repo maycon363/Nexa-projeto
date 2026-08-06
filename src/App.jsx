@@ -14,6 +14,7 @@ import LearnView from './components/LearnView.jsx'
 import ContinuousLearningView from './components/ContinuousLearningView.jsx'
 import AboutView from './components/AboutView.jsx'
 import Footer from './components/Footer.jsx'
+import ScrollToTopButton from './components/ScrollToTopButton.jsx'
 
 export default function App() {
   const { session, user, loading: authLoading, signIn, signOut } = useAuth()
@@ -107,6 +108,7 @@ function AuthenticatedApp({ user, onSignOut }) {
         />
       </div>
 
+      <ScrollToTopButton />
       <ChatFab
         data={data}
         todayKey={todayKey}

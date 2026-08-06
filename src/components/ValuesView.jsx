@@ -27,8 +27,8 @@ export default function ValuesView({ data, todayCompletions, addValue, addValorI
           </div>
         </div>
         <form className="add-item-row" onSubmit={submit}>
-          <input placeholder="Nome (ex: Disciplina)" value={name} onChange={e => setName(e.target.value)} />
-          <input placeholder="Descrição curta (opcional)" value={desc} onChange={e => setDesc(e.target.value)} />
+          <input type="text" placeholder="Nome (ex: Disciplina)" value={name} onChange={e => setName(e.target.value)} />
+          <input type="text" placeholder="Descrição curta (opcional)" value={desc} onChange={e => setDesc(e.target.value)} />
           <button type="submit">Criar</button>
         </form>
       </section>
@@ -87,7 +87,7 @@ function ItemForm({ onAdd }) {
   }
   return (
     <form className="add-item-row" onSubmit={submit}>
-      <input placeholder="Novo item para esse valor…" value={text} onChange={e => setText(e.target.value)} />
+      <input type="text" placeholder="Novo item para esse valor…" value={text} onChange={e => setText(e.target.value)} />
       <button type="submit">Adicionar</button>
     </form>
   )
