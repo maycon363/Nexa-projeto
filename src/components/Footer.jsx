@@ -4,9 +4,9 @@ import { enablePushNotifications, disablePushNotifications, getPushSubscriptionS
 
 // Troque os links abaixo pelos seus de verdade.
 const SOCIAL_LINKS = [
-  { href: 'https://github.com/SEU_USUARIO', label: 'GitHub', Icon: GithubIcon },
-  { href: 'https://linkedin.com/in/SEU_USUARIO', label: 'LinkedIn', Icon: LinkedinIcon },
-  { href: 'https://instagram.com/SEU_USUARIO', label: 'Instagram', Icon: InstagramIcon }
+  { href: 'https://github.com/maycon363', label: 'GitHub', Icon: GithubIcon },
+  { href: 'https://www.linkedin.com/in/maycon-borges-4a6022338/', label: 'LinkedIn', Icon: LinkedinIcon },
+  { href: 'https://www.instagram.com/mayconborges.p?igsh=MXBwenlkNWNxcGJ4cA%3D%3D', label: 'Instagram', Icon: InstagramIcon }
 ]
 
 export default function Footer({ onExport, onImport, onSignOut }) {
