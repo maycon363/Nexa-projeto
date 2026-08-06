@@ -19,6 +19,14 @@
   --radius: 14px;
 }
 
+:root {
+  color-scheme: dark;
+
+  --color-bg: #101211;
+  --color-surface: #171a19;
+  /* ...resto continua igual... */
+}
+
 * { box-sizing: border-box; }
 
 html, body, #root { height: 100%; }
@@ -127,28 +135,6 @@ button { font-family: inherit; }
   font-size: 15px;
   padding: 5px 8px;
 }
-
-.add-item-row { display: flex; gap: 8px; padding: 14px 0 16px; align-items: center; flex-wrap: wrap; }
-.add-item-row input {
-  flex: 1;
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  color: var(--color-white);
-  font-family: var(--font-body);
-  font-size: 14px;
-  padding: 9px 12px;
-}
-.add-item-row button {
-  background: var(--color-green-dim);
-  color: var(--color-green-bright);
-  border: 1px solid var(--color-green-dim);
-  border-radius: 8px;
-  padding: 0 16px;
-  font-size: 14px;
-  cursor: pointer;
-}
-.add-item-row button:hover { background: var(--color-green); color: var(--color-bg); }
 
 .toolbar { display: flex; gap: 10px; margin-top: 32px; flex-wrap: wrap; }
 .toolbar button, .toolbar label {
@@ -376,15 +362,6 @@ button { font-family: inherit; }
   margin: 28px 0 12px;
 }
 .today-group:first-child .today-group-title { margin-top: 0; }
-
-.type-select {
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  color: var(--color-white);
-  font-size: 13px;
-  padding: 0 10px;
-}
 
 .day-tabs { display: flex; gap: 6px; margin-bottom: 18px; overflow-x: auto; }
 .day-tab {
@@ -978,68 +955,6 @@ button { font-family: inherit; }
 /* Dentro do chat, a barra fica mais fina (área menor) */
 .ai-log::-webkit-scrollbar { width: 6px; }
 
-/* --- Campo de horário próprio (substitui o input nativo cru) --- */
-.time-field {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 5px 9px;
-  font-size: 12px;
-  color: var(--color-gray);
-  flex-shrink: 0;
-  white-space: nowrap;
-  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
-}
-
-.time-field.has-value {
-  color: var(--color-green-bright);
-  border-color: var(--color-green-dim);
-  background: var(--color-green-dim);
-  padding-right: 22px; /* espaço reservado pro botão de limpar */
-}
-
-.time-field-label { pointer-events: none; }
-
-/* O input real fica invisível, mas ocupa o espaço todo do pill — é nele que
-   o clique realmente acontece, então o seletor nativo abre normalmente em
-   qualquer navegador/celular, só que com nosso visual por cima. */
-.time-field-input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  -webkit-appearance: none;
-}
-
-.time-field-clear {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2; /* fica acima do input invisível, senão o clique abriria o seletor */
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.25);
-  color: var(--color-green-bright);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-}
-.time-field-clear:hover { background: rgba(0, 0, 0, 0.4); }
-
 /* --- Banner de instalação iOS --- */
 .ios-install-banner {
   display: flex;
@@ -1119,6 +1034,175 @@ button { font-family: inherit; }
 }
 
 /* ================================================================
+   CONTROLES REDESENHADOS: linha de adicionar item
+   (período + texto + horário + botão), unificados em altura e estilo
+   ================================================================ */
+
+.add-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 0 18px;
+  flex-wrap: wrap;
+}
+
+.add-item-row input[type="text"] {
+  flex: 1;
+  min-width: 160px;
+  height: 42px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 0 14px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.add-item-row input[type="text"]:focus {
+  outline: none;
+  border-color: var(--color-green-dim);
+  background: var(--color-surface);
+}
+.add-item-row input[type="text"]::placeholder { color: var(--color-gray-soft); }
+
+.add-item-row button[type="submit"] {
+  height: 42px;
+  background: var(--color-green);
+  color: var(--color-bg);
+  border: 1px solid var(--color-green);
+  border-radius: 10px;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  flex-shrink: 0;
+}
+.add-item-row button[type="submit"]:hover { background: var(--color-green-bright); border-color: var(--color-green-bright); }
+.add-item-row button[type="submit"]:active { transform: scale(0.97); }
+
+/* Seletor de período (Manhã/Tarde/Noite) */
+.type-select {
+  height: 42px;
+  min-width: 108px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0 34px 0 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%239aa39d' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.type-select:hover { border-color: var(--color-gray-soft); }
+.type-select:focus { outline: none; border-color: var(--color-green-dim); }
+
+/* Campo de horário próprio */
+.time-field {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-gray);
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.time-field:hover { border-color: var(--color-gray-soft); }
+
+.time-field.has-value {
+  color: var(--color-green-bright);
+  border-color: var(--color-green-dim);
+  background: var(--color-green-dim);
+  padding-right: 30px; /* espaço reservado pro botão de limpar */
+}
+
+.time-field-label { pointer-events: none; }
+
+/* O input real fica invisível, mas ocupa o espaço todo do campo — é nele
+   que o clique realmente acontece, então o seletor nativo abre normalmente
+   em qualquer navegador/celular, só que com nosso visual por cima. */
+.time-field-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+
+.time-field-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2; /* fica acima do input invisível, senão o clique abriria o seletor */
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--color-green-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.time-field-clear:hover { background: rgba(0, 0, 0, 0.4); }
+
+/* Em dispositivos com mouse de verdade (desktop), o input nativo precisa
+   ficar visível e digitável — não existe "seletor" pra clicar como no
+   celular, é preciso ver os campos hora/minuto pra conseguir digitar. */
+@media (pointer: fine) {
+  .time-field { padding-right: 12px; }
+  .time-field.has-value { padding-right: 12px; }
+  .time-field-input {
+    position: static;
+    opacity: 1;
+    width: auto;
+    height: auto;
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 0;
+    cursor: text;
+    color-scheme: dark; /* faz os campos internos (hora/minuto) nascerem escuros */
+  }
+  .time-field-label { display: none; }
+  .time-field-clear { position: static; margin-left: 6px; flex-shrink: 0; }
+  .time-field-input::-webkit-calendar-picker-indicator {
+    filter: invert(0.65);
+    cursor: pointer;
+    margin-left: 4px;
+    opacity: 0.8;
+  }
+  .time-field-input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+}
+/* ================================================================
    MEDIA QUERIES — mantidas juntas no final pra facilitar manutenção
    ================================================================ */
 
@@ -1154,17 +1238,16 @@ button { font-family: inherit; }
   .day-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; overflow-x: visible; }
   .day-tab { padding: 7px 6px; font-size: 12px; text-align: center; }
 
-  .add-item-row { flex-wrap: wrap; gap: 8px; }
-  .add-item-row input { flex: 1 1 100%; order: 1; }
-  .add-item-row select { flex: 1 1 auto; min-width: 0; order: 2; }
-  .add-item-row .time-field { order: 3; }
-  .add-item-row button { flex: 0 0 auto; order: 4; }
+  .add-item-row { gap: 8px; }
+  .add-item-row input[type="text"] { flex: 1 1 100%; order: 1; }
+  .type-select { flex: 1 1 auto; min-width: 0; order: 2; }
+  .add-item-row .time-field { order: 3; flex: 1 1 auto; justify-content: center; }
+  .add-item-row button[type="submit"] { flex: 1 1 auto; order: 4; }
 
   .checklist-item { flex-wrap: wrap; }
   .item-body { flex: 1 1 calc(100% - 34px); }
   .item-actions { margin-left: 34px; margin-top: 6px; flex-wrap: wrap; gap: 6px; }
   .item-move, .item-edit, .item-remove { padding: 6px 7px; font-size: 11px; }
-  .time-field { order: -1; flex: 1 1 100%; justify-content: center; }
 
   .diag-grid,
   .compare-grid,
@@ -1206,89 +1289,4 @@ button { font-family: inherit; }
   .navbar-brand-text { display: none; }
   .toolbar { gap: 8px; }
   .toolbar button, .toolbar label { padding: 7px 12px; font-size: 12px; }
-}
-
-.time-field {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 5px 9px;
-  font-size: 12px;
-  color: var(--color-gray);
-  flex-shrink: 0;
-  white-space: nowrap;
-  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
-}
-
-.time-field.has-value {
-  color: var(--color-green-bright);
-  border-color: var(--color-green-dim);
-  background: var(--color-green-dim);
-  padding-right: 22px;
-}
-
-.time-field-label { pointer-events: none; }
-
-.time-field-input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  -webkit-appearance: none;
-}
-
-.time-field-clear {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.25);
-  color: var(--color-green-bright);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-}
-.time-field-clear:hover { background: rgba(0, 0, 0, 0.4); }
-
-/* Em dispositivos com mouse de verdade (desktop), o input nativo precisa
-   ficar visível e digitável — não existe "seletor" pra clicar como no
-   celular, é preciso ver os campos hora/minuto pra conseguir digitar. */
-@media (pointer: fine) {
-  .time-field-input {
-    position: static;
-    opacity: 1;
-    width: auto;
-    height: auto;
-    background: transparent;
-    border: none;
-    color: inherit;
-    font-family: var(--font-body);
-    font-size: 12px;
-    padding: 0;
-    cursor: text;
-  }
-  .time-field-label { display: none; }
-  .time-field-clear { position: static; margin-left: 4px; }
-  .time-field.has-value { padding-right: 9px; }
-  .time-field-input::-webkit-calendar-picker-indicator {
-    filter: invert(0.6);
-    cursor: pointer;
-    margin-left: 2px;
-  }
 }

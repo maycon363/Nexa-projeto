@@ -20,6 +20,18 @@ export function pushSupported() {
   return typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window
 }
 
+async function saveSubscriptionToServer(subscription) {
+  const headers = await authHeader()
+  const res = await fetch('/.netlify/functions/save-push-subscription', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: JSON.stringify({ subscription })
+  })
+  const body = await res.json()
+  if (!res.ok) throw new Error(body.error || 'Não consegui salvar a inscrição de push.')
+  return body
+}
+
 export async function getPushSubscriptionStatus() {
   if (!pushSupported()) return 'unsupported'
   const registration = await navigator.serviceWorker.getRegistration()
@@ -49,15 +61,7 @@ export async function enablePushNotifications() {
     })
   }
 
-  const headers = await authHeader()
-  const res = await fetch('/.netlify/functions/save-push-subscription', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...headers },
-    body: JSON.stringify({ subscription })
-  })
-  const body = await res.json()
-  if (!res.ok) throw new Error(body.error || 'Não consegui salvar a inscrição de push.')
-
+  await saveSubscriptionToServer(subscription)
   return true
 }
 
@@ -75,4 +79,38 @@ export async function disablePushNotifications() {
   })
 
   await subscription.unsubscribe()
+}
+
+// Chamado silenciosamente ao abrir o app (se o usuário já tiver ativado
+// lembretes antes). Cobre três situações que, sem isso, quebram o push sem
+// nenhum aviso visível: (1) a permissão já foi concedida mas o service
+// worker foi reinstalado sem gerar inscrição nova; (2) o navegador trocou o
+// endpoint da inscrição sozinho; (3) o app foi instalado depois da inscrição
+// ter sido feita direto no navegador, e precisa confirmar que ainda é a
+// mesma origem/inscrição.
+export async function resyncPushSubscriptionIfEnabled() {
+  if (!pushSupported()) return
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+
+  try {
+    const registration = await navigator.serviceWorker.register('/sw.js')
+    await navigator.serviceWorker.ready
+
+    let subscription = await registration.pushManager.getSubscription()
+
+    if (!subscription) {
+      const keyRes = await fetch('/.netlify/functions/vapid-public-key')
+      const { publicKey, error: keyError } = await keyRes.json()
+      if (keyError) return
+
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey)
+      })
+    }
+
+    await saveSubscriptionToServer(subscription)
+  } catch (err) {
+    console.error('[push] falha ao resincronizar inscrição', err)
+  }
 }

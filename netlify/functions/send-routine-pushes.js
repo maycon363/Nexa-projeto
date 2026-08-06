@@ -1,8 +1,3 @@
-// Função agendada (cron) — configurada no netlify.toml pra rodar a cada minuto.
-// Para cada usuário, olha os itens de rotina com horário batendo com "agora" no
-// fuso horário de São Paulo, e que ainda não foram marcados como feitos hoje,
-// e manda um push. Evita repetir usando push_reminder_log.
-
 import webpush from 'web-push'
 import { supabaseAdmin } from '../lib/supabaseAdmin.js'
 
@@ -14,9 +9,6 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
 }
 
-function pad(n) { return String(n).padStart(2, '0') }
-
-// Calcula "agora" no fuso de São Paulo sem depender de libs externas.
 function nowInSaoPaulo() {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Sao_Paulo',
@@ -41,6 +33,7 @@ export async function handler() {
   }
 
   const { dayKey, hhmm, weekday } = nowInSaoPaulo()
+  console.log(`[send-routine-pushes] rodando às ${hhmm} (dia ${dayKey}, weekday ${weekday})`)
 
   const { data: rows, error } = await supabaseAdmin
     .from('nexa_data')
@@ -50,6 +43,10 @@ export async function handler() {
     console.error('Erro ao ler nexa_data:', error.message)
     return { statusCode: 500, body: error.message }
   }
+
+  let matchedItems = 0
+  let sentPushes = 0
+  let removedStale = 0
 
   for (const row of rows || []) {
     const items = (row.data?.checklistItems || []).filter(i =>
@@ -63,12 +60,17 @@ export async function handler() {
     const pending = items.filter(i => !dayCompletions[i.id])
     if (pending.length === 0) continue
 
+    matchedItems += pending.length
+
     const { data: subs } = await supabaseAdmin
       .from('push_subscriptions')
       .select('endpoint, p256dh, auth')
       .eq('user_id', row.user_id)
 
-    if (!subs || subs.length === 0) continue
+    if (!subs || subs.length === 0) {
+      console.log(`[send-routine-pushes] usuário ${row.user_id} tem item pendente mas nenhuma inscrição salva`)
+      continue
+    }
 
     for (const item of pending) {
       const { error: logError } = await supabaseAdmin
@@ -88,17 +90,22 @@ export async function handler() {
         const pushSub = { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }
         try {
           await webpush.sendNotification(pushSub, payload)
+          sentPushes++
+          console.log(`[send-routine-pushes] push enviado: user ${row.user_id}, item ${item.id}, endpoint ${sub.endpoint.slice(0, 60)}…`)
         } catch (err) {
-          // inscrição expirada/inválida — remove pra não tentar de novo
           if (err.statusCode === 404 || err.statusCode === 410) {
             await supabaseAdmin.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)
+            removedStale++
+            console.log(`[send-routine-pushes] inscrição expirada removida: ${sub.endpoint.slice(0, 60)}…`)
           } else {
-            console.error('Erro ao enviar push:', err.message)
+            console.error(`[send-routine-pushes] erro ao enviar push (status ${err.statusCode}):`, err.message)
           }
         }
       }
     }
   }
+
+  console.log(`[send-routine-pushes] fim — itens pendentes: ${matchedItems}, pushes enviados: ${sentPushes}, inscrições removidas: ${removedStale}`)
 
   return { statusCode: 200, body: 'ok' }
 }

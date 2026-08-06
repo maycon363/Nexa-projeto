@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from './hooks/useAuth.js'
 import { useAppData } from './hooks/useAppData.js'
+import { resyncPushSubscriptionIfEnabled } from './services/pushService.js'
 import AuthScreen from './components/AuthScreen.jsx'
 import NavBar from './components/NavBar.jsx'
 import IosInstallBanner from './components/IosInstallBanner.jsx'
@@ -42,6 +43,10 @@ function AuthenticatedApp({ user, onSignOut }) {
   } = useAppData(user.id)
 
   const [tab, setTab] = useState('hoje')
+
+  useEffect(() => {
+    resyncPushSubscriptionIfEnabled()
+  }, [])
 
   if (loading || !data) {
     return (
