@@ -73,16 +73,20 @@ export async function handler() {
     }
 
     for (const item of pending) {
+      // A chave de duplicidade agora inclui o horário do lembrete — assim,
+      // se o usuário editar o horário de um item existente, o push volta a
+      // disparar normalmente, em vez de ficar bloqueado por um envio
+      // anterior daquele mesmo item em outro horário no mesmo dia.
       const { error: logError } = await supabaseAdmin
         .from('push_reminder_log')
-        .insert({ user_id: row.user_id, item_id: item.id, day_key: dayKey })
+        .insert({ user_id: row.user_id, item_id: item.id, day_key: dayKey, reminder_time: item.time })
 
-      if (logError) continue // já foi enviado (conflito de chave primária) — pula
+      if (logError) continue // esse item + esse horário + esse dia já foi enviado — pula
 
       const payload = JSON.stringify({
         title: 'Nexa — hora da rotina',
         body: item.text,
-        tag: `${dayKey}-${item.id}`,
+        tag: `${dayKey}-${item.id}-${item.time}`,
         url: '/'
       })
 
@@ -91,7 +95,7 @@ export async function handler() {
         try {
           await webpush.sendNotification(pushSub, payload)
           sentPushes++
-          console.log(`[send-routine-pushes] push enviado: user ${row.user_id}, item ${item.id}, endpoint ${sub.endpoint.slice(0, 60)}…`)
+          console.log(`[send-routine-pushes] push enviado: user ${row.user_id}, item ${item.id}, horário ${item.time}, endpoint ${sub.endpoint.slice(0, 60)}…`)
         } catch (err) {
           if (err.statusCode === 404 || err.statusCode === 410) {
             await supabaseAdmin.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)
