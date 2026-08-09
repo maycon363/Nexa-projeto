@@ -9,12 +9,12 @@ import TodayView from './components/TodayView.jsx'
 import HistoryView from './components/HistoryView.jsx'
 import ValuesView from './components/ValuesView.jsx'
 import ChatFab from './components/ChatFab.jsx'
+import ScrollToTopButton from './components/ScrollToTopButton.jsx'
 import NexaLoader from './components/NexaLoader.jsx'
 import LearnView from './components/LearnView.jsx'
 import ContinuousLearningView from './components/ContinuousLearningView.jsx'
 import AboutView from './components/AboutView.jsx'
 import Footer from './components/Footer.jsx'
-import ScrollToTopButton from './components/ScrollToTopButton.jsx'
 
 export default function App() {
   const { session, user, loading: authLoading, signIn, signOut } = useAuth()
@@ -38,7 +38,7 @@ function AuthenticatedApp({ user, onSignOut }) {
   const {
     data, todayKey, dayFor, loading, error,
     toggleItem, setNote,
-    addValue, addValorItem, addRotinaItem, removeChecklistItem,
+    addValue, addValorItem, addRotinaItem, addSubTask, removeChecklistItem,
     updateItemText, updateItemTime, moveItem,
     progressForValue, exportJSON, importJSON
   } = useAppData(user.id)
@@ -77,6 +77,7 @@ function AuthenticatedApp({ user, onSignOut }) {
             setNote={setNote}
             addValorItem={addValorItem}
             addRotinaItem={addRotinaItem}
+            addSubTask={addSubTask}
             removeChecklistItem={removeChecklistItem}
             updateItemText={updateItemText}
             updateItemTime={updateItemTime}

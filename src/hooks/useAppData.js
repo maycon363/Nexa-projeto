@@ -177,18 +177,40 @@ export function useAppData(userId) {
     return id
   }, [])
 
-  // Agora aceita um horário opcional (formato "HH:MM") usado pro lembrete.
-  const addRotinaItem = useCallback((period, text, weekday, time = null) => {
+  // Agora aceita um horário opcional (formato "HH:MM") e um parentId opcional
+  // — quando parentId é informado, o item nasce como subtarefa de outro item.
+  const addRotinaItem = useCallback((period, text, weekday, time = null, parentId = null) => {
     const id = uniqueId(`rotina-${period}`)
     setData(prev => (prev ? {
       ...prev,
-      checklistItems: [...prev.checklistItems, { id, kind: 'rotina', period, weekday, text, time: time || null, recurring: true }]
+      checklistItems: [...prev.checklistItems, { id, kind: 'rotina', period, weekday, text, time: time || null, parentId, recurring: true }]
     } : prev))
     return id
   }, [])
 
+  // Cria uma subtarefa vinculada a um item já existente. Herda
+  // period/weekday/valueId do item pai automaticamente.
+  const addSubTask = useCallback((parentId, text) => {
+    setData(prev => {
+      if (!prev) return prev
+      const parent = prev.checklistItems.find(i => i.id === parentId)
+      if (!parent) return prev
+      const id = uniqueId(`sub-${parentId}`)
+      const newItem = {
+        id, kind: parent.kind, period: parent.period, weekday: parent.weekday,
+        valueId: parent.valueId, text, time: null, parentId, recurring: true
+      }
+      return { ...prev, checklistItems: [...prev.checklistItems, newItem] }
+    })
+  }, [])
+
+  // Remover um item agora também remove suas subtarefas, senão elas ficariam
+  // órfãs (visíveis em nenhum lugar, mas ainda ocupando espaço nos dados).
   const removeChecklistItem = useCallback((itemId) => {
-    setData(prev => (prev ? { ...prev, checklistItems: prev.checklistItems.filter(i => i.id !== itemId) } : prev))
+    setData(prev => (prev ? {
+      ...prev,
+      checklistItems: prev.checklistItems.filter(i => i.id !== itemId && i.parentId !== itemId)
+    } : prev))
   }, [])
 
   const updateItemText = useCallback((itemId, text) => {
@@ -198,7 +220,7 @@ export function useAppData(userId) {
     } : prev))
   }, [])
 
-  // Atualiza (ou limpa, se time for vazio) o horário de lembrete de um item de rotina.
+  // Atualiza (ou limpa, se time for vazio) o horário de lembrete de um item.
   const updateItemTime = useCallback((itemId, time) => {
     setData(prev => (prev ? {
       ...prev,
@@ -215,7 +237,7 @@ export function useAppData(userId) {
       const item = items[idx]
 
       const sameGroup = (i) => item.kind === 'rotina'
-        ? i.kind === 'rotina' && i.period === item.period && i.weekday === item.weekday
+        ? i.kind === 'rotina' && i.period === item.period && i.weekday === item.weekday && i.parentId === item.parentId
         : i.kind === 'valor' && i.valueId === item.valueId
 
       let neighborIdx = -1
@@ -274,7 +296,7 @@ export function useAppData(userId) {
   return {
     data, todayKey, dayFor, loading, error,
     toggleItem, setNote,
-    addValue, addValorItem, addRotinaItem, removeChecklistItem,
+    addValue, addValorItem, addRotinaItem, addSubTask, removeChecklistItem,
     updateItemText, updateItemTime, moveItem,
     progressForValue, exportJSON, importJSON
   }

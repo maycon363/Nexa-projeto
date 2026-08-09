@@ -6,7 +6,7 @@ import { getWeekDates } from '../utils/dates.js'
 export default function TodayView({
   data, dayFor, progressForValue,
   toggleItem, setNote,
-  addValorItem, addRotinaItem, removeChecklistItem,
+  addValorItem, addRotinaItem, addSubTask, removeChecklistItem,
   updateItemText, updateItemTime, moveItem
 }) {
   const weekDates = getWeekDates()
@@ -40,6 +40,7 @@ export default function TodayView({
           completions={day.completions}
           onToggle={(itemId) => toggleItem(itemId, selected)}
           onAddItem={addRotinaItem}
+          onAddSubTask={addSubTask}
           onRemoveItem={removeChecklistItem}
           onEditText={updateItemText}
           onEditTime={updateItemTime}
