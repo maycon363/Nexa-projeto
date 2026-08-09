@@ -1,7 +1,7 @@
 // Ícones em SVG, linha fina, consistentes entre si — usados nas ações de
 // item (editar/mover/remover), no rodapé e nos controles do chat.
 
-export function EditIcon({ size = 13 }) {
+export function EditIcon({ size = 17 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
       <path d="M13.5 3.5l3 3L6 17H3v-3L13.5 3.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" />
@@ -9,7 +9,7 @@ export function EditIcon({ size = 13 }) {
   )
 }
 
-export function ArrowUpIcon({ size = 13 }) {
+export function ArrowUpIcon({ size = 17 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
       <path d="M10 15V5M10 5l-4.5 4.5M10 5l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -17,7 +17,7 @@ export function ArrowUpIcon({ size = 13 }) {
   )
 }
 
-export function ArrowDownIcon({ size = 13 }) {
+export function ArrowDownIcon({ size = 17 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
       <path d="M10 5v10M10 15l-4.5-4.5M10 15l4.5-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -25,7 +25,7 @@ export function ArrowDownIcon({ size = 13 }) {
   )
 }
 
-export function TrashIcon({ size = 13 }) {
+export function TrashIcon({ size = 17 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
       <path
@@ -114,6 +114,25 @@ export function InstagramIcon({ size = 15 }) {
       <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.6" />
       <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.6" />
       <circle cx="17.2" cy="6.8" r="1" fill="currentColor" />
+    </svg>
+  )
+}
+
+export function PlusIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function ChevronIcon({ size = 15, open = false }) {
+  return (
+    <svg
+      width={size} height={size} viewBox="0 0 20 20" fill="none"
+      style={{ transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease' }}
+    >
+      <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

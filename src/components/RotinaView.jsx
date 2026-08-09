@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { EditIcon, ArrowUpIcon, ArrowDownIcon, TrashIcon, ClockIcon, CloseIcon } from './Icons.jsx'
+import { EditIcon, ArrowUpIcon, ArrowDownIcon, TrashIcon, ClockIcon, CloseIcon, PlusIcon, ChevronIcon } from './Icons.jsx'
 
 const PERIODS = [
   { id: 'manha', label: 'Manhã' },
@@ -7,11 +7,6 @@ const PERIODS = [
   { id: 'noite', label: 'Noite' }
 ]
 
-// Campo de horário próprio: o que aparece na tela é sempre o mesmo, em
-// qualquer navegador/celular — um pill com nosso ícone de relógio. Por baixo,
-// um <input type="time"> de verdade fica invisível cobrindo o pill, então
-// tocar nele abre o seletor nativo do sistema (isso sim funciona igual em
-// qualquer lugar, já que é um clique direto no controle real).
 function TimeField({ value, onChange, ariaLabel }) {
   return (
     <span className={`time-field${value ? ' has-value' : ''}`}>
@@ -39,7 +34,7 @@ function TimeField({ value, onChange, ariaLabel }) {
   )
 }
 
-function RotinaItemRow({ item, done, isFirst, isLast, onToggle, onEditText, onEditTime, onMoveUp, onMoveDown, onRemove }) {
+function SubTaskRow({ item, done, onToggle, onEditText, onEditTime, onRemove }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(item.text)
 
@@ -51,14 +46,14 @@ function RotinaItemRow({ item, done, isFirst, isLast, onToggle, onEditText, onEd
   }
 
   return (
-    <li className="checklist-item">
+    <li className="checklist-item sub-item">
       <button
-        className={`check-box${done ? ' checked' : ''}`}
+        className={`check-box sub-check-box${done ? ' checked' : ''}`}
         onClick={onToggle}
         aria-pressed={done}
         aria-label={done ? 'Marcar como não feito' : 'Marcar como feito'}
       >
-        <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+        <svg width="10" height="8" viewBox="0 0 12 10" fill="none">
           <path d="M1 5L4.2 8.2L11 1" stroke="var(--color-bg)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
@@ -77,7 +72,7 @@ function RotinaItemRow({ item, done, isFirst, isLast, onToggle, onEditText, onEd
             }}
           />
         ) : (
-          <div className={`item-text${done ? ' done' : ''}`} onClick={() => setEditing(true)} title="Clique para editar">
+          <div className={`item-text sub-item-text${done ? ' done' : ''}`} onClick={() => setEditing(true)} title="Clique para editar">
             {item.text}
           </div>
         )}
@@ -89,39 +84,171 @@ function RotinaItemRow({ item, done, isFirst, isLast, onToggle, onEditText, onEd
           onChange={onEditTime}
           ariaLabel={`Horário do lembrete para ${item.text}`}
         />
-        <button className="item-move" onClick={onMoveUp} disabled={isFirst} title="Mover pra cima"><ArrowUpIcon /></button>
-        <button className="item-move" onClick={onMoveDown} disabled={isLast} title="Mover pra baixo"><ArrowDownIcon /></button>
-        <button className="item-remove" onClick={onRemove} title="Remover item"><TrashIcon /></button>
+        <button className="item-remove" onClick={onRemove} title="Remover subtarefa"><TrashIcon size={15} /></button>
       </div>
     </li>
   )
 }
 
-export default function RotinaView({ items, weekday, completions, onToggle, onAddItem, onRemoveItem, onEditText, onEditTime, onMoveItem }) {
+function RotinaItemRow({
+  item, done, isFirst, isLast, subTasks, subCompletions,
+  onToggle, onEditText, onEditTime, onMoveUp, onMoveDown, onRemove,
+  onToggleSub, onEditSubText, onEditSubTime, onRemoveSub, onAddSub
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(item.text)
+  const [expanded, setExpanded] = useState(true)
+  const [addingSub, setAddingSub] = useState(false)
+  const [subDraft, setSubDraft] = useState('')
+
+  function commit() {
+    const trimmed = draft.trim()
+    if (trimmed && trimmed !== item.text) onEditText(trimmed)
+    else setDraft(item.text)
+    setEditing(false)
+  }
+
+  function submitSub(e) {
+    e.preventDefault()
+    const trimmed = subDraft.trim()
+    if (!trimmed) return
+    onAddSub(trimmed)
+    setSubDraft('')
+    setAddingSub(false)
+    setExpanded(true)
+  }
+
+  const subDoneCount = subTasks.filter(s => subCompletions[s.id]).length
+  const hasSubTasks = subTasks.length > 0
+
+  return (
+    <>
+      <li className="checklist-item">
+        {hasSubTasks && (
+          <button
+            className="item-expand"
+            onClick={() => setExpanded(e => !e)}
+            aria-label={expanded ? 'Recolher subtarefas' : 'Expandir subtarefas'}
+          >
+            <ChevronIcon size={15} open={expanded} />
+          </button>
+        )}
+
+        <button
+          className={`check-box${done ? ' checked' : ''}`}
+          onClick={onToggle}
+          aria-pressed={done}
+          aria-label={done ? 'Marcar como não feito' : 'Marcar como feito'}
+        >
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+            <path d="M1 5L4.2 8.2L11 1" stroke="var(--color-bg)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
+        <div className="item-body">
+          {editing ? (
+            <input
+              className="item-edit-input"
+              value={draft}
+              autoFocus
+              onChange={e => setDraft(e.target.value)}
+              onBlur={commit}
+              onKeyDown={e => {
+                if (e.key === 'Enter') commit()
+                if (e.key === 'Escape') { setDraft(item.text); setEditing(false) }
+              }}
+            />
+          ) : (
+            <div className={`item-text${done ? ' done' : ''}`} onClick={() => setEditing(true)} title="Clique para editar">
+              {item.text}
+              {hasSubTasks && <span className="sub-progress-badge">{subDoneCount}/{subTasks.length}</span>}
+            </div>
+          )}
+        </div>
+
+        <div className="item-actions">
+          <TimeField
+            value={item.time || ''}
+            onChange={onEditTime}
+            ariaLabel={`Horário do lembrete para ${item.text}`}
+          />
+          <button className="item-move" onClick={() => setAddingSub(a => !a)} title="Adicionar subtarefa"><PlusIcon /></button>
+          <button className="item-move" onClick={onMoveUp} disabled={isFirst} title="Mover pra cima"><ArrowUpIcon /></button>
+          <button className="item-move" onClick={onMoveDown} disabled={isLast} title="Mover pra baixo"><ArrowDownIcon /></button>
+          <button className="item-remove" onClick={onRemove} title="Remover item"><TrashIcon /></button>
+        </div>
+      </li>
+
+      {addingSub && (
+        <li className="checklist-item sub-item sub-add-row">
+          <form className="sub-add-form" onSubmit={submitSub}>
+            <input
+              type="text"
+              autoFocus
+              placeholder="Nova subtarefa…"
+              value={subDraft}
+              onChange={e => setSubDraft(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Escape') { setAddingSub(false); setSubDraft('') } }}
+            />
+            <button type="submit">Adicionar</button>
+          </form>
+        </li>
+      )}
+
+      {hasSubTasks && expanded && subTasks.map(sub => (
+        <SubTaskRow
+          key={sub.id}
+          item={sub}
+          done={Boolean(subCompletions[sub.id])}
+          onToggle={() => onToggleSub(sub.id)}
+          onEditText={(text) => onEditSubText(sub.id, text)}
+          onEditTime={(time) => onEditSubTime(sub.id, time)}
+          onRemove={() => onRemoveSub(sub.id)}
+        />
+      ))}
+    </>
+  )
+}
+
+export default function RotinaView({ items, weekday, completions, onToggle, onAddItem, onRemoveItem, onEditText, onEditTime, onMoveItem, onAddSubTask }) {
   return (
     <div>
       {PERIODS.map(period => {
-        const periodItems = items.filter(i => i.period === period.id && (i.weekday === weekday || i.weekday === null || i.weekday === undefined))
+        const periodItems = items.filter(i =>
+          i.period === period.id &&
+          (i.weekday === weekday || i.weekday === null || i.weekday === undefined) &&
+          !i.parentId
+        )
         if (periodItems.length === 0) return null
         return (
           <div className="period-block" key={period.id}>
             <h3 className="period-title">{period.label}</h3>
             <ul className="checklist">
-              {periodItems.map((item, i) => (
-                <RotinaItemRow
-                  key={item.id}
-                  item={item}
-                  done={Boolean(completions[item.id])}
-                  isFirst={i === 0}
-                  isLast={i === periodItems.length - 1}
-                  onToggle={() => onToggle(item.id)}
-                  onEditText={(text) => onEditText(item.id, text)}
-                  onEditTime={(time) => onEditTime(item.id, time)}
-                  onMoveUp={() => onMoveItem(item.id, 'up')}
-                  onMoveDown={() => onMoveItem(item.id, 'down')}
-                  onRemove={() => onRemoveItem(item.id)}
-                />
-              ))}
+              {periodItems.map((item, i) => {
+                const subTasks = items.filter(sub => sub.parentId === item.id)
+                return (
+                  <RotinaItemRow
+                    key={item.id}
+                    item={item}
+                    done={Boolean(completions[item.id])}
+                    isFirst={i === 0}
+                    isLast={i === periodItems.length - 1}
+                    subTasks={subTasks}
+                    subCompletions={completions}
+                    onToggle={() => onToggle(item.id)}
+                    onEditText={(text) => onEditText(item.id, text)}
+                    onEditTime={(time) => onEditTime(item.id, time)}
+                    onMoveUp={() => onMoveItem(item.id, 'up')}
+                    onMoveDown={() => onMoveItem(item.id, 'down')}
+                    onRemove={() => onRemoveItem(item.id)}
+                    onToggleSub={(subId) => onToggle(subId)}
+                    onEditSubText={(subId, text) => onEditText(subId, text)}
+                    onEditSubTime={(subId, time) => onEditTime(subId, time)}
+                    onRemoveSub={(subId) => onRemoveItem(subId)}
+                    onAddSub={(text) => onAddSubTask(item.id, text)}
+                  />
+                )
+              })}
             </ul>
           </div>
         )

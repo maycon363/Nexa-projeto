@@ -117,13 +117,19 @@ button { font-family: inherit; }
   border: none;
   color: var(--color-gray-soft);
   cursor: pointer;
-  font-size: 11px;
-  padding: 4px 5px;
-  border-radius: 4px;
+  padding: 0;
+  border-radius: 10px;
   line-height: 1;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 .item-move:hover:not(:disabled), .item-edit:hover, .item-remove:hover { color: var(--color-white); background: var(--color-surface-alt); }
 .item-move:disabled { opacity: 0.25; cursor: default; }
+.item-remove:hover { color: #e08585; background: rgba(224, 133, 133, 0.1); }
 
 .item-edit-input {
   width: 100%;
@@ -1247,7 +1253,11 @@ button { font-family: inherit; }
   .checklist-item { flex-wrap: wrap; }
   .item-body { flex: 1 1 calc(100% - 34px); }
   .item-actions { margin-left: 34px; margin-top: 6px; flex-wrap: wrap; gap: 6px; }
-  .item-move, .item-edit, .item-remove { padding: 6px 7px; font-size: 11px; }
+  .item-move, .item-edit, .item-remove {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+  }
 
   .diag-grid,
   .compare-grid,
@@ -1338,4 +1348,80 @@ button { font-family: inherit; }
     width: 38px;
     height: 38px;
   }
+}
+
+/* --- Subtarefas dentro de um item de rotina --- */
+.item-expand {
+  background: none;
+  border: none;
+  color: var(--color-gray-soft);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  margin-top: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+.item-expand:hover { color: var(--color-white); background: var(--color-surface-alt); }
+
+.sub-progress-badge {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-green-bright);
+  background: var(--color-green-dim);
+  border-radius: 999px;
+  padding: 1px 8px;
+  vertical-align: middle;
+}
+
+.sub-item {
+  padding-left: 34px;
+  border-top: none !important;
+}
+
+.sub-check-box { width: 20px; height: 20px; }
+
+.sub-item-text { font-size: 13.5px; color: var(--color-gray); }
+.sub-item-text.done { color: var(--color-gray-soft); }
+
+.sub-add-row { padding-top: 4px; padding-bottom: 8px; }
+
+.sub-add-form {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.sub-add-form input {
+  flex: 1;
+  height: 38px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 0 12px;
+}
+.sub-add-form input:focus { outline: none; border-color: var(--color-green-dim); }
+.sub-add-form button {
+  height: 38px;
+  background: var(--color-green-dim);
+  color: var(--color-green-bright);
+  border: 1px solid var(--color-green-dim);
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.sub-add-form button:hover { background: var(--color-green); color: var(--color-bg); }
+
+@media (max-width: 640px) {
+  .sub-item { padding-left: 20px; }
+  .item-expand { width: 32px; height: 32px; }
 }

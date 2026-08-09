@@ -73,19 +73,30 @@ export async function handler() {
     }
 
     for (const item of pending) {
-      // A chave de duplicidade agora inclui o horário do lembrete — assim,
-      // se o usuário editar o horário de um item existente, o push volta a
-      // disparar normalmente, em vez de ficar bloqueado por um envio
-      // anterior daquele mesmo item em outro horário no mesmo dia.
+      // A chave de duplicidade inclui o horário do lembrete — assim, editar
+      // o horário de um item existente volta a disparar normalmente, em vez
+      // de ficar bloqueado por um envio anterior daquele item em outro
+      // horário no mesmo dia.
       const { error: logError } = await supabaseAdmin
         .from('push_reminder_log')
         .insert({ user_id: row.user_id, item_id: item.id, day_key: dayKey, reminder_time: item.time })
 
       if (logError) continue // esse item + esse horário + esse dia já foi enviado — pula
 
+      // Título usa o próprio texto do item — assim a notificação já mostra
+      // o que precisa ser feito sem precisar abrir o app. Se for subtarefa,
+      // indica de qual item pai ela faz parte, pra dar contexto.
+      const parentItem = item.parentId
+        ? row.data.checklistItems.find(i => i.id === item.parentId)
+        : null
+
+      const title = parentItem
+        ? `${item.text} (${parentItem.text})`
+        : item.text
+
       const payload = JSON.stringify({
-        title: 'Nexa — hora da rotina',
-        body: item.text,
+        title,
+        body: `Hora marcada: ${item.time} · toque pra abrir o Nexa`,
         tag: `${dayKey}-${item.id}-${item.time}`,
         url: '/'
       })
