@@ -366,6 +366,7 @@ button { font-family: inherit; }
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 28px 0 12px;
+  margin-bottom: 20px;
 }
 .today-group:first-child .today-group-title { margin-top: 0; }
 
@@ -519,12 +520,18 @@ button { font-family: inherit; }
   overflow-y: auto;
 }
 
-.diag-section-title { font-size: 14px; color: var(--color-gray); margin: 0 0 12px; font-weight: 500; }
+.diag-section-title { 
+  font-size: 16px; 
+  color: var(--color-gray); 
+  margin: 0 0 12px; 
+  font-weight: 500; 
+}
 
 .diag-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 12px;
+  margin-bottom: 10px;
 }
 
 .diag-card {

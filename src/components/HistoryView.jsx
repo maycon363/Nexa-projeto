@@ -1,3 +1,5 @@
+import { FcBullish, FcBearish } from "react-icons/fc";
+
 function computeValueDiagnostics(data, dayKeys) {
   return data.values.map(value => {
     const items = data.checklistItems.filter(i => i.kind === 'valor' && i.valueId === value.id)
@@ -136,7 +138,7 @@ export default function HistoryView({ data }) {
 
           {strong.length > 0 && (
             <div className="today-group">
-              <h3 className="diag-section-title">🌱 Pontos fortes</h3>
+              <h3 className="diag-section-title"><FcBullish size={20}/> Pontos fortes</h3>
               <div className="diag-grid">
                 {strong.map(d => (
                   <DiagnosticCard key={d.value.id} pct={d.pct} name={d.value.name} done={d.done} total={d.total} />
@@ -147,7 +149,7 @@ export default function HistoryView({ data }) {
 
           {developing.length > 0 && (
             <div className="today-group">
-              <h3 className="diag-section-title">🎯 A desenvolver</h3>
+              <h3 className="diag-section-title"><FcBearish size={20}/> A desenvolver</h3>
               <div className="diag-grid">
                 {developing.map(d => (
                   <DiagnosticCard key={d.value.id} pct={d.pct} name={d.value.name} done={d.done} total={d.total} />
