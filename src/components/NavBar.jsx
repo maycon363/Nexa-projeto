@@ -4,6 +4,7 @@ import NexaMark from './NexaMark.jsx'
 const TABS = [
   { id: 'hoje', label: 'Hoje' },
   { id: 'historico', label: 'Histórico' },
+  { id: 'mapeamento', label: 'Mapeamento' },
   { id: 'valores', label: 'Valores' },
   { id: 'aprenda', label: 'Aprenda' },
   { id: 'aprendizado', label: 'Aprendizado' },

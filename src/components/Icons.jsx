@@ -118,6 +118,17 @@ export function InstagramIcon({ size = 15 }) {
   )
 }
 
+export function SparkleIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <path
+        d="M10 2.5 11.4 7.4 16.5 8.8 11.4 10.2 10 15.1 8.6 10.2 3.5 8.8 8.6 7.4 10 2.5Z"
+        stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 export function PlusIcon({ size = 16 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" fill="none">

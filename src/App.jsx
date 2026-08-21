@@ -7,6 +7,7 @@ import NavBar from './components/NavBar.jsx'
 import IosInstallBanner from './components/IosInstallBanner.jsx'
 import TodayView from './components/TodayView.jsx'
 import HistoryView from './components/HistoryView.jsx'
+import HabitMappingView from './components/HabitMappingView.jsx'
 import ValuesView from './components/ValuesView.jsx'
 import ChatFab from './components/ChatFab.jsx'
 import ScrollToTopButton from './components/ScrollToTopButton.jsx'
@@ -15,6 +16,7 @@ import LearnView from './components/LearnView.jsx'
 import ContinuousLearningView from './components/ContinuousLearningView.jsx'
 import AboutView from './components/AboutView.jsx'
 import Footer from './components/Footer.jsx'
+import WhatsNewModal from './components/WhatsNewModal.jsx'
 
 export default function App() {
   const { session, user, loading: authLoading, signIn, signOut } = useAuth()
@@ -44,6 +46,7 @@ function AuthenticatedApp({ user, onSignOut }) {
   } = useAppData(user.id)
 
   const [tab, setTab] = useState('hoje')
+  const [whatsNewSignal, setWhatsNewSignal] = useState(0)
 
   useEffect(() => {
     resyncPushSubscriptionIfEnabled()
@@ -87,6 +90,8 @@ function AuthenticatedApp({ user, onSignOut }) {
 
         {tab === 'historico' && <HistoryView data={data} />}
 
+        {tab === 'mapeamento' && <HabitMappingView data={data} />}
+
         {tab === 'valores' && (
           <ValuesView
             data={data}
@@ -106,8 +111,11 @@ function AuthenticatedApp({ user, onSignOut }) {
           onExport={exportJSON}
           onImport={e => e.target.files[0] && importJSON(e.target.files[0])}
           onSignOut={onSignOut}
+          onOpenChangelog={() => setWhatsNewSignal(n => n + 1)}
         />
       </div>
+
+      <WhatsNewModal userId={user.id} forceOpenSignal={whatsNewSignal} />
 
       <ScrollToTopButton />
       <ChatFab

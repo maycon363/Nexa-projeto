@@ -5,7 +5,7 @@ export async function askAssistant({ messages, context }) {
   const token = sessionData.session?.access_token
 
   if (!token) {
-    throw new Error('Sessão expirada — recarrega a página e entra de novo.')
+    throw new Error('Sessão expirada, recarrega a página e entra de novo.')
   }
 
   const res = await fetch('/api/ai', {

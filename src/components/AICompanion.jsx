@@ -49,8 +49,43 @@ function computeDiagnosticsSummary(data) {
   return `Diagnóstico de valores (últimos ${dayKeys.length} dias) — mais fortes: ${top}. A desenvolver: ${bottom}.`
 }
 
+function computeHabitMapSummary(data) {
+  const MAP_RANGE_DAYS = 30
+  const pad = n => String(n).padStart(2, '0')
+  const toKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+
+  const days = []
+  const base = new Date()
+  for (let i = 0; i < MAP_RANGE_DAYS; i++) {
+    const d = new Date(base)
+    d.setDate(d.getDate() - i)
+    days.push({ key: toKey(d), weekday: d.getDay() })
+  }
+
+  const habits = data.checklistItems.filter(i => i.kind === 'rotina' && !i.parentId)
+  if (habits.length === 0) return 'Tela de Mapeamento de hábitos: ainda não há itens de rotina cadastrados pra avaliar.'
+
+  const stats = habits.map(habit => {
+    const applicable = days.filter(d => habit.weekday == null || habit.weekday === d.weekday)
+    const done = applicable.filter(d => Boolean(data.dailyCycles?.[d.key]?.completions?.[habit.id])).length
+    const total = applicable.length
+    return { text: habit.text, pct: total ? Math.round((done / total) * 100) : null, total }
+  })
+
+  const withData = stats.filter(s => s.total > 0)
+  if (withData.length === 0) return 'Tela de Mapeamento de hábitos: itens cadastrados ainda não têm 30 dias de histórico suficiente.'
+
+  const sorted = [...withData].sort((a, b) => b.pct - a.pct)
+  const avg = Math.round(withData.reduce((sum, s) => sum + s.pct, 0) / withData.length)
+  const top = sorted.slice(0, 3).map(s => `${s.text} (${s.pct}%)`).join(', ')
+  const bottom = sorted.slice(-3).reverse().map(s => `${s.text} (${s.pct}%)`).join(', ')
+
+  return `Tela de Mapeamento de hábitos (últimos ${MAP_RANGE_DAYS} dias): consistência média de ${avg}%. Mais consolidados: ${top}. Precisando de mais atenção: ${bottom}.`
+}
+
 function buildScreenSummary(activeTab, data) {
   if (activeTab === 'historico') return computeDiagnosticsSummary(data)
+  if (activeTab === 'mapeamento') return computeHabitMapSummary(data)
   if (activeTab === 'aprendizado') {
     const learning = getTodayLearning()
     return `Aprendizado de hoje na tela: "${learning.title}" — ${learning.body}`

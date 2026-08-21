@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ExportIcon, ImportIcon, LogoutIcon, BellIcon, GithubIcon, LinkedinIcon, InstagramIcon } from './Icons.jsx'
+import { ExportIcon, ImportIcon, LogoutIcon, BellIcon, SparkleIcon, GithubIcon, LinkedinIcon, InstagramIcon } from './Icons.jsx'
 import { enablePushNotifications, disablePushNotifications, getPushSubscriptionStatus, pushSupported } from '../services/pushService.js'
 
 // Troque os links abaixo pelos seus de verdade.
@@ -9,7 +9,7 @@ const SOCIAL_LINKS = [
   { href: 'https://www.instagram.com/mayconborges.p?igsh=MXBwenlkNWNxcGJ4cA%3D%3D', label: 'Instagram', Icon: InstagramIcon }
 ]
 
-export default function Footer({ onExport, onImport, onSignOut }) {
+export default function Footer({ onExport, onImport, onSignOut, onOpenChangelog }) {
   const [pushStatus, setPushStatus] = useState('checking') // checking | unsupported | not-subscribed | subscribed
   const [busy, setBusy] = useState(false)
 
@@ -55,6 +55,7 @@ export default function Footer({ onExport, onImport, onSignOut }) {
         >
           <BellIcon /> {busy ? '…' : pushLabel}
         </button>
+        <button onClick={onOpenChangelog}><SparkleIcon /> Novidades</button>
         <button className="app-footer-signout" onClick={onSignOut}><LogoutIcon /> Sair</button>
       </div>
 

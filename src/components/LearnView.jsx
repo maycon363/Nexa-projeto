@@ -30,6 +30,15 @@ const CATEGORIES = [
       'Edita o item "Ler livro" pra "Ler livro de autoconhecimento"',
       'Remove o item "Digitação" da rotina de hoje'
     ]
+  },
+  {
+    title: 'Pedir uma avaliação de verdade',
+    hint: 'Não é resposta genérica, ela olha seus dados reais (rotina, valores, consistência) antes de responder.',
+    examples: [
+      'Como estou indo essa semana?',
+      'Qual hábito eu ando mais negligenciando no Mapeamento?',
+      'Me dá um feedback sincero sobre meus valores'
+    ]
   }
 ]
 
@@ -43,9 +52,15 @@ export default function LearnView() {
       <section className="value-section">
         <h2 className="about-subtitle" style={{ marginTop: 0 }}>A IA está aqui pra economizar seu tempo</h2>
         <p className="about-p">
-          Ela não é só pra bater papo é pra fazer o trabalho manual de montar listas
-          por você. Clica em qualquer exemplo abaixo pra já mandar ele pro assistente.
+          Ela não é só pra bater papo, é pra fazer o trabalho manual de montar listas
+          e analisar seus dados por você.
         </p>
+
+        <ol className="learn-steps">
+          <li>Clica em qualquer exemplo abaixo (ou escreve o seu próprio pedido)</li>
+          <li>O chat abre com o texto já pronto no campo, nada é enviado sozinho</li>
+          <li>Revisa, ajusta se quiser, e manda</li>
+        </ol>
       </section>
 
       {CATEGORIES.map(cat => (
@@ -61,6 +76,14 @@ export default function LearnView() {
           </div>
         </section>
       ))}
+
+      <section className="value-section">
+        <h3 className="learn-cat-title">O que ela ainda não faz</h3>
+        <p className="about-p" style={{ marginBottom: 0 }}>
+          Por enquanto, criar subtarefas (aqueles sub-itens com "+") ainda precisa ser feito
+          direto na tela "Hoje", a IA ainda não cria isso pelo chat.
+        </p>
+      </section>
     </div>
   )
 }

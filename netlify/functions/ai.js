@@ -1,8 +1,9 @@
 //netlify/functions/ai.js
 import { supabaseAdmin, ADMIN_EMAILS, DEFAULT_DAILY_LIMIT, getVerifiedUser, jsonResponse } from '../lib/supabaseAdmin.js'
+import { jsonrepair } from 'jsonrepair'
 
-const CEREBRAS_URL = 'https://api.cerebras.ai/v1/chat/completions'
-const MODEL = process.env.CEREBRAS_MODEL || 'gpt-oss-120b'
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
+const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
 
 function todayUTCDate() {
   return new Date().toISOString().slice(0, 10)
@@ -38,8 +39,15 @@ ESTRUTURA DE TELAS (abas da navbar):
 - "Aprendizado": um card com um ensinamento/reflexão diferente por dia (rotativo,
   baseado no dia do ano), sobre hábitos, disciplina, gratidão etc. Puramente de
   leitura, sem ações.
+- "Mapeamento": lista cada item de rotina (hábito) com sua consistência nos
+  últimos 30 dias (dias cumpridos / dias esperados, considerando o dia da semana
+  de cada hábito), sequência atual de dias seguidos, e uma categoria de feedback
+  ("Hábito consolidado" >=80%, "Em construção" 50-79%, "Ainda instável" 20-49%,
+  "Precisa de empurrão" <20%%, ou "Sem histórico ainda" se muito recente). Só
+  considera itens de rotina, não valores. Inspirado em conceitos como identidade
+  por trás do hábito, empilhamento de hábitos e redução de fricção.
 - "Sobre": explica o propósito do app, o papel da IA, como foi construído
-  (React + Vite, Supabase/Postgres com RLS, modelo via Cerebras), a seção de
+  (React + Vite, Supabase/Postgres com RLS, modelo via Gemini), a seção de
   novidade sobre lembretes por notificação e subtarefas, e o cuidado de
   acessibilidade nos botões de ação (editar/mover/remover seguem 44×44px, o
   tamanho mínimo recomendado pra toque confortável em celular).
@@ -118,10 +126,26 @@ tela agora sem precisar pedir mais informação — os dados já estão ali.
 Use "current_screen" pra dar ajuda relevante ao que a pessoa está olhando:
 - "hoje": foco em marcar/adicionar/editar/remover itens de rotina e valores do dia.
 - "historico": ajude a interpretar diagnósticos, comparação semanal, tendências.
+- "mapeamento": pessoa está olhando a consistência dos hábitos de rotina. Use o
+  screen_summary (já traz a média e os hábitos mais fortes/fracos) pra dar
+  feedback específico e acionável — cite os hábitos pelo nome, não fale em
+  genérico tipo "continue se esforçando". Se um hábito estiver fraco, sugira uma
+  ação concreta (torná-lo menor, empilhar depois de outro hábito já consolidado,
+  reduzir a fricção pra começar) em vez de só repetir o número.
 - "valores": foco em criar/gerenciar valores e os itens de checklist deles.
 - "aprendizado" ou "aprenda": pessoa pode estar só lendo — responda mais
   conversacional, sem forçar ações.
 - "sobre": provavelmente pergunta sobre o próprio app, não ação de lista.
+
+INTELIGÊNCIA ANALÍTICA — quando a pergunta for do tipo "como estou indo",
+"me dá um feedback", "o que eu deveria focar", "qual valor eu ando negligenciando"
+ou qualquer pedido de avaliação/opinião sobre o progresso do usuário, USE os
+dados reais do contexto (screen_summary, checklistItems, completions, values)
+pra responder com especificidade: cite nomes de hábitos/valores reais, números
+reais, e uma sugestão concreta do que fazer a seguir. Nunca responda com
+generalidades vagas tipo "continue se esforçando" ou "você está indo bem" sem
+embasar em algo específico dos dados — se não houver dados suficientes pra
+avaliar algo, diga isso claramente em vez de inventar uma avaliação.
 
 NOVIDADE RECENTE — lembretes por notificação e subtarefas (mencione quando
 relevante: pergunta tipo "o que mudou", item de rotina sem horário, tela "sobre",
@@ -168,6 +192,12 @@ Regras:
   realizáveis em um dia, nunca vagos ou genéricos demais.
 - Quando o usuário pedir pra "trocar"/"remover e adicionar" algo, gere as duas
   ações (remove_item + add_valor_item ou add_rotina_item) na mesma resposta.
+- Quando o usuário pedir pra marcar/desmarcar/agir sobre VÁRIOS itens de uma vez
+  (ex: "marca tudo de hoje", "desmarca todos os itens de Disciplina"), gere uma
+  ação separada pra CADA item que se encaixa no pedido — releia a lista de
+  checklistItems do contexto item por item antes de responder, pra não esquecer
+  nenhum. Só diga que concluiu a ação em "reply" se realmente incluiu todos os
+  itens correspondentes na lista de "actions".
 - Nunca inclua texto antes ou depois do JSON.
 - O campo "reply" é SEMPRE texto natural em português, como se fosse uma
   mensagem de chat comum. NUNCA coloque JSON, chaves {}, aspas de código, ou
@@ -244,18 +274,48 @@ export async function handler(event) {
     remaining = profile.daily_limit - (currentCount + 1)
   }
 
-  const apiKey = process.env.CEREBRAS_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
-    return jsonResponse(500, { error: 'CEREBRAS_API_KEY não configurada no servidor.' })
+    return jsonResponse(500, { error: 'GEMINI_API_KEY não configurada no servidor.' })
   }
 
   const { messages = [], context = {} } = event.body ? JSON.parse(event.body) : {}
 
+  const responseSchema = {
+    type: 'object',
+    properties: {
+      reply: { type: 'string' },
+      actions: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            type: { type: 'string' },
+            itemId: { type: 'string' },
+            valueId: { type: 'string' },
+            name: { type: 'string' },
+            description: { type: 'string' },
+            text: { type: 'string' },
+            period: { type: 'string' },
+            weekday: { type: 'integer' },
+            time: { type: 'string' }
+          },
+          required: ['type']
+        }
+      }
+    },
+    required: ['reply', 'actions']
+  }
+
   const payload = {
     model: MODEL,
     temperature: 0.4,
-    max_tokens: 3000,
-    response_format: { type: 'json_object' },
+    max_tokens: 12000,
+    reasoning_effort: 'medium',
+    response_format: {
+      type: 'json_schema',
+      json_schema: { name: 'nexa_assistant_response', schema: responseSchema }
+    },
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'system', content: `Contexto atual em JSON: ${JSON.stringify(context)}` },
@@ -263,8 +323,8 @@ export async function handler(event) {
     ]
   }
 
-  try {
-    const upstream = await fetch(CEREBRAS_URL, {
+  async function callGemini() {
+    return fetch(GEMINI_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -272,25 +332,58 @@ export async function handler(event) {
       },
       body: JSON.stringify(payload)
     })
+  }
+
+  try {
+    // O Gemini gratuito às vezes fica sobrecarregado (503 UNAVAILABLE) —
+    // isso é temporário, então tentamos de novo automaticamente 1x antes
+    // de desistir, com uma pequena espera.
+    let upstream = await callGemini()
+
+    if (upstream.status === 503) {
+      await new Promise(resolve => setTimeout(resolve, 1200))
+      upstream = await callGemini()
+    }
 
     if (!upstream.ok) {
       const text = await upstream.text()
-      return jsonResponse(upstream.status, { error: `Erro da Cerebras: ${text}` })
+      let friendly = 'O assistente está indisponível no momento. Tenta de novo em alguns segundos.'
+      try {
+        const errJson = JSON.parse(text)
+        const msg = errJson?.error?.message || errJson?.[0]?.error?.message
+        if (msg) friendly = `Erro do Gemini: ${msg}`
+      } catch {
+        // mantém a mensagem genérica se não der pra interpretar o erro
+      }
+      return jsonResponse(upstream.status === 503 ? 503 : upstream.status, { error: friendly })
     }
 
     const data = await upstream.json()
     const raw = data.choices?.[0]?.message?.content || '{}'
 
     let parsed
+    let recoveredFromTruncation = false
     try {
       const cleaned = raw.trim().replace(/^```json\s*|```$/g, '')
       parsed = JSON.parse(cleaned)
     } catch {
-      const match = raw.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/)
-      if (match) {
-        parsed = { reply: match[1].replace(/\\"/g, '"').replace(/\\n/g, '\n'), actions: [] }
-      } else {
-        parsed = { reply: 'A resposta ficou grande demais e não consegui interpretar tudo — tenta pedir em partes menores.', actions: [] }
+      // O JSON.parse direto falhou — geralmente é porque a resposta foi
+      // cortada no meio (limite de tokens) durante uma lista grande de
+      // "actions". Em vez de descartar tudo, tentamos consertar o JSON
+      // truncado com a jsonrepair, que fecha aspas/colchetes pendentes e
+      // recupera as ações que já tinham sido geradas antes do corte.
+      try {
+        const cleaned = raw.trim().replace(/^```json\s*|```$/g, '')
+        parsed = JSON.parse(jsonrepair(cleaned))
+        recoveredFromTruncation = true
+      } catch {
+        const match = raw.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/)
+        if (match) {
+          parsed = { reply: match[1].replace(/\\"/g, '"').replace(/\\n/g, '\n'), actions: [] }
+        } else {
+          parsed = { reply: 'A resposta ficou grande demais e não consegui interpretar tudo — tenta pedir em partes menores.', actions: [] }
+        }
+        recoveredFromTruncation = true
       }
     }
 
@@ -311,13 +404,23 @@ export async function handler(event) {
       }
     }
 
+    if (typeof parsed.reply !== 'string' || parsed.reply.trim() === '') {
+      const fallback = parsed.response ?? parsed.message ?? parsed.text ?? parsed.answer
+      if (typeof fallback === 'string' && fallback.trim() !== '') {
+        parsed.reply = fallback
+      }
+    }
+
     if (typeof parsed.reply !== 'string') parsed.reply = String(parsed.reply ?? '')
     if (!Array.isArray(parsed.actions)) parsed.actions = []
+    if (recoveredFromTruncation) {
+      parsed.reply += '\n\n(Aviso: a resposta ficou grande e pode ter sido cortada no meio — confere se tudo que você pediu foi realmente aplicado. Se faltou algo, é só pedir de novo em partes menores.)'
+    }
     parsed.remaining = remaining
     parsed.isAdmin = profile.is_admin
 
     return jsonResponse(200, parsed)
   } catch (err) {
-    return jsonResponse(500, { error: `Falha ao chamar a Cerebras: ${err.message}` })
+    return jsonResponse(500, { error: `Falha ao chamar o Gemini: ${err.message}` })
   }
 }

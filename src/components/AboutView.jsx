@@ -77,8 +77,8 @@ export default function AboutView() {
         <p className="about-p">
           Front-end em React + Vite, com um design system próprio (sem biblioteca de UI
           pronta). Login e dados salvos no Supabase (Postgres com Row Level Security,
-          cada pessoa só acessa o que é dela). O assistente roda num modelo open-weight
-          via Cerebras, atrás de uma função serverless que confere quem está chamando e
+          cada pessoa só acessa o que é dela). O assistente roda num modelo do Google
+          (Gemini), atrás de uma função serverless que confere quem está chamando e
           controla um limite diário de mensagens por pessoa. Os lembretes usam Web Push
           com service worker, e o app pode ser instalado na tela de início (PWA) tanto
           no Android quanto no iPhone.
