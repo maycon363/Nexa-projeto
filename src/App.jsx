@@ -66,7 +66,7 @@ function AuthenticatedApp({ user, onSignOut }) {
     <div className="app-shell">
       <IosInstallBanner />
 
-      <NavBar active={tab} onChange={setTab} />
+      <NavBar active={tab} onChange={setTab} onOpenChangelog={() => setWhatsNewSignal(n => n + 1)} />
 
       <div className="app">
         {error && <p className="sync-error">Aviso: houve um problema ao sincronizar ({error}). Seus dados continuam na tela, tenta recarregar em instantes.</p>}
@@ -111,7 +111,6 @@ function AuthenticatedApp({ user, onSignOut }) {
           onExport={exportJSON}
           onImport={e => e.target.files[0] && importJSON(e.target.files[0])}
           onSignOut={onSignOut}
-          onOpenChangelog={() => setWhatsNewSignal(n => n + 1)}
         />
       </div>
 

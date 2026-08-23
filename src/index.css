@@ -309,6 +309,27 @@ button { font-family: inherit; }
 .navbar-tab:hover { color: var(--color-white); }
 .navbar-tab.active { background: var(--color-green-dim); color: var(--color-green-bright); }
 
+.navbar-whatsnew-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-green-bright);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.navbar-whatsnew-btn:hover {
+  background: var(--color-green-dim);
+  border-color: var(--color-green-bright);
+}
+
+
 .navbar-menu-btn {
   display: none;
   align-items: center;
@@ -511,6 +532,23 @@ button { font-family: inherit; }
   justify-content: center;
 }
 .chat-drawer-close:hover { color: var(--color-white); background: var(--color-surface-alt); }
+
+.chat-drawer-head-actions { display: flex; align-items: center; gap: 6px; }
+
+.chat-drawer-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: none;
+  border-radius: 999px;
+  color: var(--color-gray-soft);
+  cursor: pointer;
+}
+
+.chat-drawer-clear:hover { color: #d96b5a; background: var(--color-surface-alt); }
 
 /* --- Modal de Novidades --- */
 

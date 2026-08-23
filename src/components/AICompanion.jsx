@@ -6,7 +6,7 @@ import { getTodayLearning } from '../data/dailyLearnings.js'
 
 const DEFAULT_GREETING = {
   role: 'assistant',
-  content: 'Oi! Eu vejo em qual tela do app você está, então posso ajudar com o que estiver ali na hora — marcar, adicionar, editar ou remover itens, ou só explicar o que você tá vendo.'
+  content: 'Oi! Eu vejo em qual tela do app você está, então posso ajudar com o que estiver ali na hora como marcar, adicionar, editar ou remover itens, ou só explicar o que você tá vendo.'
 }
 
 function chatStorageKey(userId) {
@@ -120,8 +120,22 @@ export default function AICompanion({ data, todayKey, todayWeekday, todayComplet
       if (typeof e.detail === 'string') setInput(e.detail)
     }
     window.addEventListener('nexa:prefillChat', handlePrefill)
-    return () => window.removeEventListener('nexa:prefillChat', handlePrefill)
-  }, [])
+
+    function handleClear() {
+      setLog([DEFAULT_GREETING])
+      try {
+        localStorage.removeItem(chatStorageKey(userId))
+      } catch {
+        // ignora
+      }
+    }
+    window.addEventListener('nexa:clearChat', handleClear)
+
+    return () => {
+      window.removeEventListener('nexa:prefillChat', handlePrefill)
+      window.removeEventListener('nexa:clearChat', handleClear)
+    }
+  }, [userId])
 
   function buildContext() {
     return {
@@ -214,14 +228,14 @@ export default function AICompanion({ data, todayKey, todayWeekday, todayComplet
         {log.map((m, i) => (
           <div key={i} className={`ai-row ${m.role}`}>
             {m.role === 'assistant' && (
-              <span className="ai-avatar"><NexaMark size={14} /></span>
+              <span className="ai-avatar"><NexaMark size={16} /></span>
             )}
             <div className={`ai-msg ${m.role}`}>{m.content}</div>
           </div>
         ))}
         {loading && (
           <div className="ai-row assistant">
-            <span className="ai-avatar"><NexaMark size={14} /></span>
+            <span className="ai-avatar"><NexaMark size={16} /></span>
             <div className="ai-msg assistant ai-loading-row ai-loading-focus">
               <NexaLoader size={24} />
             </div>

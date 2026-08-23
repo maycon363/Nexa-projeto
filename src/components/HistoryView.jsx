@@ -110,9 +110,11 @@ function CompareCard({ label, current, previous }) {
   )
 }
 
+const DIAG_WINDOW_DAYS = 7
+
 export default function HistoryView({ data }) {
   const dayKeys = Object.keys(data.dailyCycles).sort((a, b) => b.localeCompare(a))
-  const recentDayKeys = dayKeys.slice(0, 30)
+  const recentDayKeys = dayKeys.slice(0, DIAG_WINDOW_DAYS)
   const diagnostics = computeValueDiagnostics(data, recentDayKeys)
   const withData = diagnostics.filter(d => d.pct !== null).sort((a, b) => b.pct - a.pct)
 

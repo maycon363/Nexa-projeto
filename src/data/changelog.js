@@ -6,6 +6,17 @@
 
 export const CHANGELOG = [
   {
+    id: 5,
+    date: '2026-08-22',
+    title: 'Ajustes finos: chat, atalhos e diagnóstico',
+    items: [
+      'Novo botão de lixeira no chat da IA, apaga o histórico da conversa quando você quiser começar do zero.',
+      'O sino de Novidades saiu do rodapé e agora fica fixo no topo, ao lado do logo, sem precisar descer a tela pra ver o que mudou.',
+      'Diagnóstico de valores no Histórico ficou mais sensível: agora reflete os últimos 7 dias em vez de 30, então cada item marcado tem um efeito bem mais visível na porcentagem.',
+      'IA mais confiável em pedidos grandes ("marca tudo de hoje"): corrigido um problema em que respostas longas podiam ser cortadas no meio, fazendo a IA achar que tinha concluído sem ter concluído tudo.'
+    ]
+  },
+  {
     id: 4,
     date: '2026-08-21',
     title: 'Assistente mais inteligente',

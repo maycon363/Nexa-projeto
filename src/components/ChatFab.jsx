@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import AICompanion from './AICompanion.jsx'
 import NexaMark from './NexaMark.jsx'
+import { TrashIcon } from './Icons.jsx'
 
 export default function ChatFab({ data, todayKey, todayWeekday, todayCompletions, userId, activeTab, onToggle, onCreateValue, onAddValorItem, onAddRotinaItem, onEditItem, onRemoveItem }) {
   const [open, setOpen] = useState(false)
@@ -12,6 +13,12 @@ export default function ChatFab({ data, todayKey, todayWeekday, todayCompletions
     window.addEventListener('nexa:prefillChat', handlePrefill)
     return () => window.removeEventListener('nexa:prefillChat', handlePrefill)
   }, [])
+
+  function clearChat() {
+    if (window.confirm('Apagar todo o histórico dessa conversa com o assistente? Não dá pra desfazer.')) {
+      window.dispatchEvent(new CustomEvent('nexa:clearChat'))
+    }
+  }
 
   return (
     <>
@@ -41,7 +48,12 @@ export default function ChatFab({ data, todayKey, todayWeekday, todayCompletions
               <NexaMark size={18} className="chat-drawer-mark" />
               Assistente
             </span>
-            <button className="chat-drawer-close" onClick={() => setOpen(false)} aria-label="Fechar">✕</button>
+            <div className="chat-drawer-head-actions">
+              <button className="chat-drawer-clear" onClick={clearChat} aria-label="Apagar conversa" title="Apagar conversa">
+                <TrashIcon size={30} />
+              </button>
+              <button className="chat-drawer-close" onClick={() => setOpen(false)} aria-label="Fechar">✕</button>
+            </div>
           </div>
           <AICompanion
             data={data}
