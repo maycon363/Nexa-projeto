@@ -188,10 +188,23 @@ Regras:
   número certo (0-6) a partir de today_weekday. "time" é opcional, formato
   "HH:MM" (24h) — só inclua se o usuário mencionar horário explícito; caso
   contrário, omita o campo por completo.
+- IMPORTANTE — "todos os dias" / "todo dia" / "diariamente" / "toda semana":
+  quando o usuário pedir isso, NÃO crie uma ação separada pra cada um dos 7
+  dias. Basta OMITIR completamente o campo "weekday" numa ÚNICA ação de
+  "add_rotina_item" — um item sem "weekday" já aparece em todos os dias da
+  semana automaticamente, é assim que o app funciona. Só use dias específicos
+  (uma ação por dia) quando o usuário pedir dias PONTUAIS e diferentes entre si
+  (ex: "segunda e quinta", "só nos dias úteis" = gera 5 ações, uma por dia).
 - Itens novos (tanto de rotina quanto de valor) devem ser concretos e
   realizáveis em um dia, nunca vagos ou genéricos demais.
 - Quando o usuário pedir pra "trocar"/"remover e adicionar" algo, gere as duas
   ações (remove_item + add_valor_item ou add_rotina_item) na mesma resposta.
+  IMPORTANTE: antes de gerar o remove_item, procure na lista de checklistItems
+  do contexto o item cujo "text" bate com o que o usuário descreveu, e use o
+  "id" EXATO desse item encontrado — nunca invente ou adivinhe um id. Se não
+  encontrar nenhum item com texto parecido, não gere o remove_item (só o
+  add_valor_item/add_rotina_item) e avise na "reply" que não achou o item
+  antigo pra remover.
 - Quando o usuário pedir pra marcar/desmarcar/agir sobre VÁRIOS itens de uma vez
   (ex: "marca tudo de hoje", "desmarca todos os itens de Disciplina"), gere uma
   ação separada pra CADA item que se encaixa no pedido — releia a lista de
@@ -199,6 +212,11 @@ Regras:
   nenhum. Só diga que concluiu a ação em "reply" se realmente incluiu todos os
   itens correspondentes na lista de "actions".
 - Nunca inclua texto antes ou depois do JSON.
+- ORDEM IMPORTA: decida e gere a lista "actions" completa PRIMEIRO. Só depois de
+  ter certeza de quais ações realmente vai incluir, escreva o texto de "reply"
+  — e a reply deve descrever exatamente o que está na lista de actions, nem
+  mais nem menos. Nunca escreva na reply que algo foi feito/adicionado/marcado
+  se a ação correspondente não estiver de fato na lista actions.
 - O campo "reply" é SEMPRE texto natural em português, como se fosse uma
   mensagem de chat comum. NUNCA coloque JSON, chaves {}, aspas de código, ou
   qualquer estrutura de dados dentro de "reply" — mesmo que o usuário peça uma
@@ -214,7 +232,22 @@ export async function handler(event) {
     return jsonResponse(405, { error: 'Método não permitido' })
   }
 
+  // Rede de segurança geral: qualquer exceção inesperada em qualquer ponto
+  // daqui pra baixo (não só na chamada ao Gemini) vira uma resposta JSON
+  // legível, em vez de um 500 cru sem mensagem nenhuma.
+  try {
+    return await handleRequest(event)
+  } catch (err) {
+    return jsonResponse(500, { error: `Erro inesperado no servidor: ${err.message}` })
+  }
+}
+
+async function handleRequest(event) {
+  const t0 = Date.now()
+  const mark = label => console.log(`[TIMING] ${label}: ${Date.now() - t0}ms`)
+
   const { user, error: authError } = await getVerifiedUser(event)
+  mark('getVerifiedUser')
   if (!user) {
     return jsonResponse(401, { error: authError })
   }
@@ -224,6 +257,7 @@ export async function handler(event) {
     .select('*')
     .eq('user_id', user.id)
     .maybeSingle()
+  mark('profiles.select')
 
   if (profileError) {
     return jsonResponse(500, { error: `Erro ao ler perfil: ${profileError.message}` })
@@ -236,6 +270,7 @@ export async function handler(event) {
       .upsert({ user_id: user.id, email: user.email, is_admin: isAdmin, daily_limit: DEFAULT_DAILY_LIMIT }, { onConflict: 'user_id' })
       .select()
       .single()
+    mark('profiles.upsert (perfil novo)')
 
     if (createError) {
       return jsonResponse(500, { error: `Erro ao criar perfil: ${createError.message}` })
@@ -252,6 +287,7 @@ export async function handler(event) {
       .eq('user_id', user.id)
       .eq('day', day)
       .maybeSingle()
+    mark('ai_usage.select')
 
     const currentCount = usageRow?.count || 0
 
@@ -266,6 +302,7 @@ export async function handler(event) {
     const { error: usageError } = await supabaseAdmin
       .from('ai_usage')
       .upsert({ user_id: user.id, day, count: currentCount + 1 }, { onConflict: 'user_id,day' })
+    mark('ai_usage.upsert')
 
     if (usageError) {
       return jsonResponse(500, { error: `Erro ao registrar uso: ${usageError.message}` })
@@ -279,12 +316,35 @@ export async function handler(event) {
     return jsonResponse(500, { error: 'GEMINI_API_KEY não configurada no servidor.' })
   }
 
-  const { messages = [], context = {} } = event.body ? JSON.parse(event.body) : {}
+  let messages = []
+  let context = {}
+  try {
+    const parsedBody = event.body ? JSON.parse(event.body) : {}
+    messages = parsedBody.messages || []
+    context = parsedBody.context || {}
+  } catch {
+    return jsonResponse(400, { error: 'Não consegui interpretar o pedido enviado (JSON inválido).' })
+  }
+
+  // Reduz o tamanho do contexto mandado pro modelo: mantém só os campos que a
+  // IA de fato usa pra decidir/gerar ações (id/kind/period/weekday/valueId/text).
+  // Campos como "time", "parentId" e "recurring" nunca influenciam uma decisão
+  // dela, só engordam a mensagem — e o contexto só tende a crescer conforme o
+  // usuário cadastra mais itens, então isso ajuda a manter a resposta rápida.
+  if (Array.isArray(context.checklistItems)) {
+    context.checklistItems = context.checklistItems.map(i => ({
+      id: i.id,
+      kind: i.kind,
+      ...(i.period ? { period: i.period } : {}),
+      ...(i.weekday != null ? { weekday: i.weekday } : {}),
+      ...(i.valueId ? { valueId: i.valueId } : {}),
+      text: i.text
+    }))
+  }
 
   const responseSchema = {
     type: 'object',
     properties: {
-      reply: { type: 'string' },
       actions: {
         type: 'array',
         items: {
@@ -302,16 +362,17 @@ export async function handler(event) {
           },
           required: ['type']
         }
-      }
+      },
+      reply: { type: 'string' }
     },
-    required: ['reply', 'actions']
+    required: ['actions', 'reply']
   }
 
   const payload = {
     model: MODEL,
     temperature: 0.4,
     max_tokens: 12000,
-    reasoning_effort: 'medium',
+    reasoning_effort: 'low',
     response_format: {
       type: 'json_schema',
       json_schema: { name: 'nexa_assistant_response', schema: responseSchema }
@@ -338,7 +399,9 @@ export async function handler(event) {
     // O Gemini gratuito às vezes fica sobrecarregado (503 UNAVAILABLE) —
     // isso é temporário, então tentamos de novo automaticamente 1x antes
     // de desistir, com uma pequena espera.
+    mark('antes da chamada ao Gemini')
     let upstream = await callGemini()
+    mark('Gemini respondeu')
 
     if (upstream.status === 503) {
       await new Promise(resolve => setTimeout(resolve, 1200))
@@ -359,6 +422,7 @@ export async function handler(event) {
     }
 
     const data = await upstream.json()
+    mark('JSON do Gemini interpretado')
     const raw = data.choices?.[0]?.message?.content || '{}'
 
     let parsed
@@ -418,6 +482,10 @@ export async function handler(event) {
     }
     parsed.remaining = remaining
     parsed.isAdmin = profile.is_admin
+
+    // LOG TEMPORÁRIO DE DIAGNÓSTICO — mostra exatamente o que o Gemini gerou
+    console.log('[DEBUG ai.js] actions geradas pelo Gemini:', JSON.stringify(parsed.actions, null, 2))
+    console.log('[DEBUG ai.js] reply gerada pelo Gemini:', parsed.reply)
 
     return jsonResponse(200, parsed)
   } catch (err) {

@@ -6,7 +6,7 @@ import { getTodayLearning } from '../data/dailyLearnings.js'
 
 const DEFAULT_GREETING = {
   role: 'assistant',
-  content: 'Oi! Eu vejo em qual tela do app você está, então posso ajudar com o que estiver ali na hora como marcar, adicionar, editar ou remover itens, ou só explicar o que você tá vendo.'
+  content: 'Oi! Eu vejo em qual tela do app você está, então posso ajudar com o que estiver ali na hora — marcar, adicionar, editar ou remover itens, ou só explicar o que você tá vendo.'
 }
 
 function chatStorageKey(userId) {
@@ -179,9 +179,22 @@ export default function AICompanion({ data, todayKey, todayWeekday, todayComplet
         if (resolvedId) onAddValorItem(resolvedId, action.text)
         else failures.push(action)
       } else if (action.type === 'add_rotina_item' && action.period && action.text) {
-        const weekday = typeof action.weekday === 'number' ? action.weekday : todayWeekday
-        const time = typeof action.time === 'string' && /^\d{2}:\d{2}$/.test(action.time) ? action.time : null
-        onAddRotinaItem(action.period, action.text, weekday, time)
+        // Normaliza "period" na unha (minúsculo, sem espaço) em vez de confiar
+        // cegamente que a IA sempre manda exatamente "manha"/"tarde"/"noite".
+        // Um valor tipo "Tarde" (maiúsculo) batia com nada na tela e criava um
+        // item fantasma — existia nos dados, mas nunca aparecia em lugar nenhum.
+        const normalizedPeriod = String(action.period).trim().toLowerCase()
+        const validPeriods = ['manha', 'tarde', 'noite']
+        if (!validPeriods.includes(normalizedPeriod)) {
+          failures.push(action)
+        } else {
+          // weekday ausente/nulo significa "todo dia" (repete diariamente) — é
+          // assim que o resto do app já interpreta esse campo. Só usa um dia
+          // específico quando a IA de fato manda um número.
+          const weekday = typeof action.weekday === 'number' ? action.weekday : null
+          const time = typeof action.time === 'string' && /^\d{2}:\d{2}$/.test(action.time) ? action.time : null
+          onAddRotinaItem(normalizedPeriod, action.text, weekday, time)
+        }
       } else if (action.type === 'edit_item' && action.itemId && action.text) {
         if (itemExists(action.itemId)) onEditItem(action.itemId, action.text)
         else failures.push(action)
@@ -228,14 +241,14 @@ export default function AICompanion({ data, todayKey, todayWeekday, todayComplet
         {log.map((m, i) => (
           <div key={i} className={`ai-row ${m.role}`}>
             {m.role === 'assistant' && (
-              <span className="ai-avatar"><NexaMark size={16} /></span>
+              <span className="ai-avatar"><NexaMark size={14} /></span>
             )}
             <div className={`ai-msg ${m.role}`}>{m.content}</div>
           </div>
         ))}
         {loading && (
           <div className="ai-row assistant">
-            <span className="ai-avatar"><NexaMark size={16} /></span>
+            <span className="ai-avatar"><NexaMark size={14} /></span>
             <div className="ai-msg assistant ai-loading-row ai-loading-focus">
               <NexaLoader size={24} />
             </div>
