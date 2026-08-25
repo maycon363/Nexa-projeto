@@ -6,6 +6,17 @@
 
 export const CHANGELOG = [
   {
+    id: 6,
+    date: '2026-08-24',
+    title: 'Assistente reconstruído por baixo dos panos',
+    items: [
+      'Trocamos o jeito da IA gerar ações por um sistema mais confiável (function calling nativo), ela agora executa cada ação (marcar, criar, editar, remover) de forma direta, em vez de escrever um texto que podia ficar desconectado do que realmente foi feito.',
+      'Corrigido: pedir pra adicionar algo "em todos os dias da semana" agora funciona de primeira, sem precisar corrigir a IA no meio da conversa.',
+      'Corrigido: itens de rotina criados pela IA não ficam mais "invisíveis" por causa de diferença de maiúscula/minúscula no período do dia.',
+      'Confirmação visual ao apagar a conversa do chat, evita apagar sem querer.'
+    ]
+  },
+  {
     id: 5,
     date: '2026-08-22',
     title: 'Ajustes finos: chat, atalhos e diagnóstico',

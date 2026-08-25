@@ -663,6 +663,103 @@ button { font-family: inherit; }
 
 .whatsnew-confirm:hover { background: var(--color-green-bright); }
 
+/* --- Diálogo de confirmação (substitui window.confirm) --- */
+
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 60;
+  padding: 24px;
+}
+
+.confirm-dialog {
+  width: 360px;
+  max-width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  padding: 24px 22px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(217, 107, 90, 0.08);
+  animation: drawer-rise 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+
+.confirm-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.confirm-icon.tone-danger { background: rgba(217, 107, 90, 0.14); color: #e2806f; }
+.confirm-icon.tone-default { background: var(--color-green-dim); color: var(--color-green-bright); }
+
+.confirm-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--color-white);
+  margin: 0 0 8px;
+}
+
+.confirm-message {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-gray);
+  margin: 0 0 20px;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.confirm-btn {
+  flex: 1;
+  padding: 11px;
+  border-radius: 12px;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.confirm-btn:active { transform: scale(0.97); }
+
+.confirm-btn-cancel {
+  background: var(--color-surface-alt);
+  color: var(--color-gray);
+}
+.confirm-btn-cancel:hover { color: var(--color-white); }
+
+.confirm-btn-danger {
+  background: #d96b5a;
+  color: #1a0f0c;
+}
+.confirm-btn-danger:hover { background: #e2806f; }
+
+.confirm-btn-default {
+  background: var(--color-green);
+  color: var(--color-bg);
+}
+.confirm-btn-default:hover { background: var(--color-green-bright); }
+
+@media (max-width: 420px) {
+  .confirm-dialog { padding: 20px 18px 18px; }
+}
+
 @media (max-width: 420px) {
   .whatsnew-overlay { padding: 14px; align-items: flex-end; }
   .whatsnew-modal { width: 100%; max-height: 82vh; }

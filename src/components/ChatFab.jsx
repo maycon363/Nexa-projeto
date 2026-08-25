@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import AICompanion from './AICompanion.jsx'
 import NexaMark from './NexaMark.jsx'
+import ConfirmDialog from './ConfirmDialog.jsx'
 import { TrashIcon } from './Icons.jsx'
 
 export default function ChatFab({ data, todayKey, todayWeekday, todayCompletions, userId, activeTab, onToggle, onCreateValue, onAddValorItem, onAddRotinaItem, onEditItem, onRemoveItem }) {
   const [open, setOpen] = useState(false)
+  const [confirmingClear, setConfirmingClear] = useState(false)
 
   useEffect(() => {
     function handlePrefill() {
@@ -15,9 +17,12 @@ export default function ChatFab({ data, todayKey, todayWeekday, todayCompletions
   }, [])
 
   function clearChat() {
-    if (window.confirm('Apagar todo o histórico dessa conversa com o assistente? Não dá pra desfazer.')) {
-      window.dispatchEvent(new CustomEvent('nexa:clearChat'))
-    }
+    setConfirmingClear(true)
+  }
+
+  function confirmClearChat() {
+    window.dispatchEvent(new CustomEvent('nexa:clearChat'))
+    setConfirmingClear(false)
   }
 
   return (
@@ -50,7 +55,7 @@ export default function ChatFab({ data, todayKey, todayWeekday, todayCompletions
             </span>
             <div className="chat-drawer-head-actions">
               <button className="chat-drawer-clear" onClick={clearChat} aria-label="Apagar conversa" title="Apagar conversa">
-                <TrashIcon size={30} />
+                <TrashIcon size={14} />
               </button>
               <button className="chat-drawer-close" onClick={() => setOpen(false)} aria-label="Fechar">✕</button>
             </div>
@@ -71,6 +76,17 @@ export default function ChatFab({ data, todayKey, todayWeekday, todayCompletions
           />
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmingClear}
+        title="Apagar essa conversa?"
+        message="O histórico do chat com o assistente vai ser apagado do seu navegador. Essa ação não pode ser desfeita."
+        confirmLabel="Apagar conversa"
+        cancelLabel="Cancelar"
+        tone="danger"
+        onConfirm={confirmClearChat}
+        onCancel={() => setConfirmingClear(false)}
+      />
     </>
   )
 }
