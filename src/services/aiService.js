@@ -26,7 +26,7 @@ export async function askAssistant({ messages, context }) {
   }
 
   if (!res.ok) {
-    throw new Error(body.error || `Falha ao falar com o assistente (${res.status})`)
+    throw new Error(body.error || `Falha ao falar com o assistente, tente novamente erro de tempo de resposta (${res.status})`)
   }
 
   return body // { reply, actions, remaining, isAdmin }

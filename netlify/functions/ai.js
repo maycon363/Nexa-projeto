@@ -495,7 +495,7 @@ async function handleRequest(event) {
       // a resposta vazia (que era exatamente o sintoma de "(sem resposta)").
       reply = actions.length > 0
         ? 'Feito!'
-        : 'Não entendi exatamente o que fazer com isso — pode reformular?'
+        : 'Não entendi exatamente o que fazer com isso, pode reformular?'
     }
 
     const parsed = { reply, actions, remaining, isAdmin: profile.is_admin }
