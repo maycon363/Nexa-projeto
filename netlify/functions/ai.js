@@ -204,6 +204,14 @@ Regras:
   releia a lista de checklistItems do contexto item por item antes de
   responder, pra não esquecer nenhum. Só diga que concluiu a ação na resposta
   em texto se realmente chamou a função pra todos os itens correspondentes.
+- NUNCA use formatação markdown na resposta em texto: sem **negrito**, sem
+  *itálico*, sem \`código\`, sem # títulos, sem listas com "-" ou "*" no início
+  da linha. O chat mostra o texto exatamente como está, sem interpretar
+  símbolos — então "**Prestativo**" apareceria com os asteriscos de verdade
+  na tela, o que fica feio e confuso. Escreva só em frases normais e
+  parágrafos corridos; se precisar listar itens, numere por extenso dentro da
+  frase (ex: "primeiro X, depois Y") ou use quebras de linha simples com
+  travessão (—), nunca "*" ou "-" no início.
 - Precisão de linguagem: escreva em português correto, natural, sem erros de
   concordância, pontuação ou acentuação — inclusive vírgulas. A resposta em
   texto deve parecer escrita por alguém atento a cada detalhe da frase, não um
@@ -225,6 +233,114 @@ export async function handler(event) {
   }
 }
 
+function buildGeminiPayload(messages, context) {
+  const tools = [
+  {
+    type: 'function',
+    function: {
+      name: 'toggle_item',
+      description: 'Marca ou desmarca (alterna) um item de checklist existente como concluído no dia de hoje.',
+      parameters: {
+        type: 'object',
+        properties: {
+          itemId: { type: 'string', description: 'id EXATO do item, copiado do contexto — nunca invente.' }
+        },
+        required: ['itemId']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'create_value',
+      description: 'Cria um novo valor pessoal (categoria de checklist). OBRIGATÓRIO: se o usuário não listou os itens de checklist explicitamente, você deve chamar add_valor_item de 4 a 8 vezes na MESMA resposta (nunca deixe um valor sem nenhum item — chamar só create_value sozinho está ERRADO).',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Nome do valor novo.' },
+          description: { type: 'string', description: 'Descrição curta opcional (pode ser vazia).' }
+        },
+        required: ['name']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'add_valor_item',
+      description: 'Adiciona um item de checklist a um valor já existente (ou recém-criado com create_value na mesma resposta).',
+      parameters: {
+        type: 'object',
+        properties: {
+          valueId: { type: 'string', description: 'id do valor existente no contexto, OU o nome exato usado em um create_value na mesma resposta.' },
+          text: { type: 'string', description: 'Texto do novo item de checklist — concreto e realizável em um dia.' }
+        },
+        required: ['valueId', 'text']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'add_rotina_item',
+      description: 'Adiciona um novo item de rotina (hábito) em um período do dia. Pra "todos os dias da semana", omita o campo weekday por completo — NÃO chame essa função 7 vezes.',
+      parameters: {
+        type: 'object',
+        properties: {
+          period: { type: 'string', enum: ['manha', 'tarde', 'noite'], description: 'Período do dia, exatamente um destes três valores.' },
+          text: { type: 'string', description: 'Texto do novo item de rotina — concreto e realizável em um dia.' },
+          weekday: { type: 'integer', description: 'Dia da semana (0=domingo...6=sábado). OMITA este campo por completo se o item deve repetir todo dia da semana.' },
+          time: { type: 'string', description: 'Horário opcional no formato HH:MM (24h). Só inclua se o usuário mencionar um horário explícito.' }
+        },
+        required: ['period', 'text']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'edit_item',
+      description: 'Edita o texto de um item de checklist (rotina ou valor) que já existe. Nunca cria um item novo — use quando o pedido for "editar/corrigir/renomear/trocar o texto de" algo existente.',
+      parameters: {
+        type: 'object',
+        properties: {
+          itemId: { type: 'string', description: 'id EXATO do item existente, copiado do contexto.' },
+          text: { type: 'string', description: 'Novo texto do item.' }
+        },
+        required: ['itemId', 'text']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'remove_item',
+      description: 'Remove um item de checklist (rotina ou valor) que já existe.',
+      parameters: {
+        type: 'object',
+        properties: {
+          itemId: { type: 'string', description: 'id EXATO do item existente a remover, copiado do contexto — procure pelo texto mais parecido, nunca invente um id.' }
+        },
+        required: ['itemId']
+      }
+    }
+  }
+]
+
+  return {
+    model: MODEL,
+    temperature: 0.4,
+    max_tokens: 12000,
+    reasoning_effort: 'low',
+    tools,
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: `Contexto atual em JSON: ${JSON.stringify(context)}` },
+      ...messages
+    ]
+  }
+}
+
 async function handleRequest(event) {
   const t0 = Date.now()
   const mark = label => console.log(`[TIMING] ${label}: ${Date.now() - t0}ms`)
@@ -234,6 +350,59 @@ async function handleRequest(event) {
   if (!user) {
     return jsonResponse(401, { error: authError })
   }
+
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    return jsonResponse(500, { error: 'GEMINI_API_KEY não configurada no servidor.' })
+  }
+
+  let messages = []
+  let context = {}
+  try {
+    const parsedBody = event.body ? JSON.parse(event.body) : {}
+    messages = parsedBody.messages || []
+    context = parsedBody.context || {}
+  } catch {
+    return jsonResponse(400, { error: 'Não consegui interpretar o pedido enviado (JSON inválido).' })
+  }
+
+  // Reduz o tamanho do contexto mandado pro modelo: mantém só os campos que a
+  // IA de fato usa pra decidir/gerar ações (id/kind/period/weekday/valueId/text).
+  // Campos como "time", "parentId" e "recurring" nunca influenciam uma decisão
+  // dela, só engordam a mensagem — e o contexto só tende a crescer conforme o
+  // usuário cadastra mais itens, então isso ajuda a manter a resposta rápida.
+  if (Array.isArray(context.checklistItems)) {
+    context.checklistItems = context.checklistItems.map(i => ({
+      id: i.id,
+      kind: i.kind,
+      ...(i.period ? { period: i.period } : {}),
+      ...(i.weekday != null ? { weekday: i.weekday } : {}),
+      ...(i.valueId ? { valueId: i.valueId } : {}),
+      text: i.text
+    }))
+  }
+
+  const payload = buildGeminiPayload(messages, context)
+
+  async function callGemini() {
+    return fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(payload)
+    })
+  }
+
+  // Dispara a chamada ao Gemini AGORA, em paralelo com as checagens de
+  // perfil/limite diário no Supabase — em vez de esperar o Supabase (que
+  // sozinho já leva uns 4s) pra só depois começar a falar com o Gemini. O
+  // tempo total passa a ser o MAIOR dos dois, não a soma dos dois. Se o
+  // limite diário acabar batendo, essa resposta é descartada — o custo é só
+  // ter disparado uma chamada à toa nesse caso raro, não afeta o usuário.
+  mark('antes da chamada ao Gemini (em paralelo com Supabase)')
+  const geminiPromise = callGemini()
 
   let { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')
@@ -294,164 +463,15 @@ async function handleRequest(event) {
     remaining = profile.daily_limit - (currentCount + 1)
   }
 
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) {
-    return jsonResponse(500, { error: 'GEMINI_API_KEY não configurada no servidor.' })
-  }
-
-  let messages = []
-  let context = {}
-  try {
-    const parsedBody = event.body ? JSON.parse(event.body) : {}
-    messages = parsedBody.messages || []
-    context = parsedBody.context || {}
-  } catch {
-    return jsonResponse(400, { error: 'Não consegui interpretar o pedido enviado (JSON inválido).' })
-  }
-
-  // Reduz o tamanho do contexto mandado pro modelo: mantém só os campos que a
-  // IA de fato usa pra decidir/gerar ações (id/kind/period/weekday/valueId/text).
-  // Campos como "time", "parentId" e "recurring" nunca influenciam uma decisão
-  // dela, só engordam a mensagem — e o contexto só tende a crescer conforme o
-  // usuário cadastra mais itens, então isso ajuda a manter a resposta rápida.
-  if (Array.isArray(context.checklistItems)) {
-    context.checklistItems = context.checklistItems.map(i => ({
-      id: i.id,
-      kind: i.kind,
-      ...(i.period ? { period: i.period } : {}),
-      ...(i.weekday != null ? { weekday: i.weekday } : {}),
-      ...(i.valueId ? { valueId: i.valueId } : {}),
-      text: i.text
-    }))
-  }
-
-  const tools = [
-    {
-      type: 'function',
-      function: {
-        name: 'toggle_item',
-        description: 'Marca ou desmarca (alterna) um item de checklist existente como concluído no dia de hoje.',
-        parameters: {
-          type: 'object',
-          properties: {
-            itemId: { type: 'string', description: 'id EXATO do item, copiado do contexto — nunca invente.' }
-          },
-          required: ['itemId']
-        }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'create_value',
-        description: 'Cria um novo valor pessoal (categoria de checklist). Use junto com add_valor_item pra popular os itens dele na mesma resposta.',
-        parameters: {
-          type: 'object',
-          properties: {
-            name: { type: 'string', description: 'Nome do valor novo.' },
-            description: { type: 'string', description: 'Descrição curta opcional (pode ser vazia).' }
-          },
-          required: ['name']
-        }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'add_valor_item',
-        description: 'Adiciona um item de checklist a um valor já existente (ou recém-criado com create_value na mesma resposta).',
-        parameters: {
-          type: 'object',
-          properties: {
-            valueId: { type: 'string', description: 'id do valor existente no contexto, OU o nome exato usado em um create_value na mesma resposta.' },
-            text: { type: 'string', description: 'Texto do novo item de checklist — concreto e realizável em um dia.' }
-          },
-          required: ['valueId', 'text']
-        }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'add_rotina_item',
-        description: 'Adiciona um novo item de rotina (hábito) em um período do dia. Pra "todos os dias da semana", omita o campo weekday por completo — NÃO chame essa função 7 vezes.',
-        parameters: {
-          type: 'object',
-          properties: {
-            period: { type: 'string', enum: ['manha', 'tarde', 'noite'], description: 'Período do dia, exatamente um destes três valores.' },
-            text: { type: 'string', description: 'Texto do novo item de rotina — concreto e realizável em um dia.' },
-            weekday: { type: 'integer', description: 'Dia da semana (0=domingo...6=sábado). OMITA este campo por completo se o item deve repetir todo dia da semana.' },
-            time: { type: 'string', description: 'Horário opcional no formato HH:MM (24h). Só inclua se o usuário mencionar um horário explícito.' }
-          },
-          required: ['period', 'text']
-        }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'edit_item',
-        description: 'Edita o texto de um item de checklist (rotina ou valor) que já existe. Nunca cria um item novo — use quando o pedido for "editar/corrigir/renomear/trocar o texto de" algo existente.',
-        parameters: {
-          type: 'object',
-          properties: {
-            itemId: { type: 'string', description: 'id EXATO do item existente, copiado do contexto.' },
-            text: { type: 'string', description: 'Novo texto do item.' }
-          },
-          required: ['itemId', 'text']
-        }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'remove_item',
-        description: 'Remove um item de checklist (rotina ou valor) que já existe.',
-        parameters: {
-          type: 'object',
-          properties: {
-            itemId: { type: 'string', description: 'id EXATO do item existente a remover, copiado do contexto — procure pelo texto mais parecido, nunca invente um id.' }
-          },
-          required: ['itemId']
-        }
-      }
-    }
-  ]
-
-  const payload = {
-    model: MODEL,
-    temperature: 0.4,
-    max_tokens: 12000,
-    reasoning_effort: 'low',
-    tools,
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'system', content: `Contexto atual em JSON: ${JSON.stringify(context)}` },
-      ...messages
-    ]
-  }
-
-  async function callGemini() {
-    return fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`
-      },
-      body: JSON.stringify(payload)
-    })
-  }
-
   try {
     // O Gemini gratuito às vezes fica sobrecarregado (503 UNAVAILABLE) —
     // isso é temporário, então tentamos de novo automaticamente 1x antes
     // de desistir, com uma pequena espera.
-    mark('antes da chamada ao Gemini')
-    let upstream = await callGemini()
+    let upstream = await geminiPromise
     mark('Gemini respondeu')
 
     if (upstream.status === 503) {
-      await new Promise(resolve => setTimeout(resolve, 2900))
+      await new Promise(resolve => setTimeout(resolve, 1200))
       upstream = await callGemini()
     }
 
@@ -495,12 +515,28 @@ async function handleRequest(event) {
       // a resposta vazia (que era exatamente o sintoma de "(sem resposta)").
       reply = actions.length > 0
         ? 'Feito!'
-        : 'Não entendi exatamente o que fazer com isso, pode reformular?'
+        : 'Não entendi exatamente o que fazer com isso — pode reformular?'
+    }
+
+    // Rede de segurança: a IA às vezes chama create_value sozinho, sem os
+    // add_valor_item que deveriam vir junto (apesar da instrução) — em vez de
+    // deixar passar como se tivesse dado tudo certo, avisa explicitamente.
+    // Comparação sem diferenciar maiúscula/minúscula, igual o frontend já
+    // faz ao resolver o valueId de um valor recém-criado na mesma resposta.
+    const createdValueNames = actions.filter(a => a.type === 'create_value').map(a => a.name)
+    const valuesWithItems = new Set(
+      actions.filter(a => a.type === 'add_valor_item' && a.valueId).map(a => String(a.valueId).trim().toLowerCase())
+    )
+    const valuesMissingItems = createdValueNames.filter(
+      name => !valuesWithItems.has(String(name).trim().toLowerCase())
+    )
+    if (valuesMissingItems.length > 0) {
+      reply += `\n\n(Aviso: criei o valor "${valuesMissingItems.join('", "')}" mas esqueci de adicionar os itens de checklist — pede pra eu adicionar alguns que eu faço agora.)`
     }
 
     const parsed = { reply, actions, remaining, isAdmin: profile.is_admin }
 
-    // LOG TEMPORÁRIO DE DIAGNÓSTICO — mostra exatamente o que o Gemini gerou
+    // LOG TEMPORÁRIO DE DIAGNÓSTICO, mostra exatamente o que o Gemini gerou
     console.log('[DEBUG ai.js] tool_calls geradas pelo Gemini:', JSON.stringify(actions, null, 2))
     console.log('[DEBUG ai.js] reply gerada pelo Gemini:', reply)
 

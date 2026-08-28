@@ -6,7 +6,7 @@ import { getTodayLearning } from '../data/dailyLearnings.js'
 
 const DEFAULT_GREETING = {
   role: 'assistant',
-  content: 'Oi! Eu vejo em qual tela do app você está, então posso ajudar com o que estiver ali na hora — marcar, adicionar, editar ou remover itens, ou só explicar o que você tá vendo.'
+  content: 'Oi! Eu vejo em qual tela do app você está, então posso ajudar com o que estiver ali na hora, marcar, adicionar, editar ou remover itens, ou só explicar o que você tá vendo.'
 }
 
 function chatStorageKey(userId) {
@@ -210,7 +210,7 @@ export default function AICompanion({ data, todayKey, todayWeekday, todayComplet
     const text = input.trim()
     if (!text || loading || limitReached) return
 
-    const nextLog = [...log, { role: 'user', content: text }]
+    const nextLog = [...log, { role: 'user', content: text, time: Date.now() }]
     setLog(nextLog)
     setInput('')
     setLoading(true)
@@ -223,12 +223,12 @@ export default function AICompanion({ data, todayKey, todayWeekday, todayComplet
       const failures = applyActions(result.actions)
       let replyText = result.reply || '(sem resposta)'
       if (failures.length > 0) {
-        replyText += '\n\n(Aviso: não consegui aplicar tudo — algum item/valor citado não bateu com o que existe. Confere se o nome está certo e tenta de novo.)'
+        replyText += '\n\n(Aviso: não consegui aplicar tudo, algum item/valor citado não bateu com o que existe. Confere se o nome está certo e tenta de novo.)'
       }
-      setLog(l => [...l, { role: 'assistant', content: replyText }])
+      setLog(l => [...l, { role: 'assistant', content: replyText, time: Date.now() }])
       setRemaining(typeof result.remaining === 'number' ? result.remaining : null)
     } catch (err) {
-      setLog(l => [...l, { role: 'assistant', content: err.message }])
+      setLog(l => [...l, { role: 'assistant', content: err.message, time: Date.now() }])
       if (err.isLimitReached) setLimitReached(true)
     } finally {
       setLoading(false)
@@ -243,7 +243,14 @@ export default function AICompanion({ data, todayKey, todayWeekday, todayComplet
             {m.role === 'assistant' && (
               <span className="ai-avatar"><NexaMark size={14} /></span>
             )}
-            <div className={`ai-msg ${m.role}`}>{m.content}</div>
+            <div className="ai-msg-col">
+              <div className={`ai-msg ${m.role}`}>{m.content}</div>
+              {m.time && (
+                <span className={`ai-msg-time ${m.role}`}>
+                  {new Date(m.time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+            </div>
           </div>
         ))}
         {loading && (

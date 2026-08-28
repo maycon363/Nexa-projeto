@@ -187,12 +187,19 @@ button { font-family: inherit; }
   color: var(--color-green-bright);
 }
 
+.ai-msg-col {
+  display: flex;
+  flex-direction: column;
+  max-width: 78%;
+}
+.ai-row.user .ai-msg-col { align-items: flex-end; }
+.ai-row.assistant .ai-msg-col { align-items: flex-start; }
+
 .ai-msg {
   font-size: 14px;
   line-height: 1.5;
   padding: 10px 14px;
   border-radius: 16px;
-  max-width: 78%;
 }
 .ai-msg.user { background: var(--color-green); color: var(--color-bg); border-bottom-right-radius: 4px; }
 .ai-msg.assistant {
@@ -200,6 +207,13 @@ button { font-family: inherit; }
   color: var(--color-white);
   border: 1px solid var(--color-border);
   border-bottom-left-radius: 4px;
+}
+
+.ai-msg-time {
+  font-size: 10.5px;
+  color: var(--color-gray-soft);
+  margin-top: 3px;
+  padding: 0 4px;
 }
 
 .ai-input-row { display: flex; gap: 8px; align-items: center; }
