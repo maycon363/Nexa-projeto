@@ -78,6 +78,44 @@ export default function LearnView() {
       ))}
 
       <section className="value-section">
+        <h3 className="learn-cat-title">Funcionalidades que não passam pelo chat</h3>
+        <p className="learn-cat-hint">
+          Essas você usa direto na tela, sem precisar pedir pra IA.
+        </p>
+
+        <p className="about-p">
+          <strong>Configurações (ícone de engrenagem na navbar):</strong> a rotina é
+          sempre o padrão fixo da tela Hoje, mas dá pra escolher se a seção "Valores"
+          e o cartão de "Mapeamento de hábitos" aparecem junto ou não. Escolha fica
+          salva pra você, não precisa mexer de novo toda vez.
+        </p>
+
+        <p className="about-p">
+          <strong>Mapeamento de hábitos (na tela Hoje):</strong> liste qualquer hábito
+          seu, automático, sem filtro, do jeito que está de verdade — bom ou ruim (ex:
+          "lavar as mãos depois do banheiro" ou "mexer no celular assim que acordo").
+          Depois classifica como Bom, Ruim ou Neutro, na mão ou tocando em
+          "Perguntar à IA" pra ela sugerir. É o mesmo exercício do "cartão de hábitos"
+          do livro Hábitos Atômicos: o primeiro passo pra mudar um hábito é enxergar
+          ele com clareza.
+        </p>
+
+        <p className="about-p">
+          <strong>Apagar um valor inteiro (ícone de lixeira em cada Valor):</strong>
+          apaga só aquele valor específico e os itens dele, os outros valores
+          continuam intactos. Pede confirmação antes, porque não tem como desfazer.
+        </p>
+
+        <p className="about-p" style={{ marginBottom: 0 }}>
+          <strong>Exportar/Importar JSON (no rodapé do app):</strong> Exportar baixa um
+          arquivo com tudo que você tem hoje (rotina, valores, hábitos, histórico dos
+          dias). Importar lê um desses arquivos e substitui os seus dados atuais pelos
+          do arquivo — útil pra fazer backup ou levar seus dados pra outro
+          navegador/celular. Detalhes de como funciona estão na aba Sobre.
+        </p>
+      </section>
+
+      <section className="value-section">
         <h3 className="learn-cat-title">O que ela ainda não faz</h3>
         <p className="about-p" style={{ marginBottom: 0 }}>
           Por enquanto, criar subtarefas (aqueles sub-itens com "+") ainda precisa ser feito

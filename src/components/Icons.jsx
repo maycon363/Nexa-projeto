@@ -147,3 +147,27 @@ export function ChevronIcon({ size = 15, open = false }) {
     </svg>
   )
 }
+
+export function SettingsIcon({ size = 22 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <path
+        d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"
+        stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"
+      />
+      <path
+        d="M16.4 11.2c.05-.4.08-.8.08-1.2s-.03-.8-.08-1.2l1.5-1.15a.6.6 0 0 0 .14-.76l-1.4-2.4a.6.6 0 0 0-.72-.27l-1.77.7a6.9 6.9 0 0 0-2.06-1.2l-.27-1.87A.6.6 0 0 0 11.24 1H8.76a.6.6 0 0 0-.6.53l-.27 1.87a6.9 6.9 0 0 0-2.06 1.2l-1.77-.7a.6.6 0 0 0-.72.27l-1.4 2.4a.6.6 0 0 0 .14.76l1.5 1.15c-.05.4-.08.8-.08 1.2s.03.8.08 1.2l-1.5 1.15a.6.6 0 0 0-.14.76l1.4 2.4c.15.26.46.36.72.27l1.77-.7c.62.51 1.31.92 2.06 1.2l.27 1.87c.05.3.31.53.6.53h2.48c.29 0 .55-.23.6-.53l.27-1.87c.75-.28 1.44-.69 2.06-1.2l1.77.7c.26.1.57 0 .72-.27l1.4-2.4a.6.6 0 0 0-.14-.76l-1.5-1.15Z"
+        stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+export function MailIcon({ size = 15 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <rect x="2.5" y="4.5" width="15" height="11" rx="1.6" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M3.2 5.3l6.8 5 6.8-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}

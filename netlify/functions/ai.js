@@ -234,6 +234,27 @@ export async function handler(event) {
 }
 
 function buildGeminiPayload(messages, context) {
+  // Chamada leve e dedicada pra classificar um hábito (bom/ruim/neutro): não
+  // precisa do system prompt gigante do app inteiro nem das 6 ferramentas de
+  // function-calling — é só uma pergunta simples pedindo JSON de volta. Misturar
+  // isso com o "modo chat completo" (tools + system prompt de ~200 linhas) só
+  // aumenta o tamanho da requisição à toa e é o suspeito nº1 do erro 500 que
+  // só acontecia nessa chamada.
+  if (context?.purpose === 'habit-classification') {
+    return {
+      model: MODEL,
+      temperature: 0.3,
+      max_tokens: 300,
+      messages: [
+        {
+          role: 'system',
+          content: 'Você classifica hábitos pessoais como "bom", "ruim" ou "neutro", no estilo do cartão de hábitos do livro Hábitos Atômicos. Responda SOMENTE com um JSON válido, sem markdown, sem texto antes ou depois: {"classification":"bom|ruim|neutro","reason":"uma frase curta"}'
+        },
+        ...messages
+      ]
+    }
+  }
+
   const tools = [
   {
     type: 'function',
@@ -382,6 +403,16 @@ async function handleRequest(event) {
     }))
   }
 
+  // Defesa extra (além do limite já aplicado no front-end): mesmo que uma
+  // versão antiga do app ainda mande o histórico inteiro, o servidor nunca
+  // deixa passar mais que as últimas MAX_HISTORY_MESSAGES mensagens pro
+  // Gemini. Histórico grande = mais tokens = maior chance de erro 500/estouro
+  // de contexto, segundo os relatos oficiais de troubleshooting do Gemini.
+  const MAX_HISTORY_MESSAGES = 20
+  if (Array.isArray(messages) && messages.length > MAX_HISTORY_MESSAGES) {
+    messages = messages.slice(-MAX_HISTORY_MESSAGES)
+  }
+
   const payload = buildGeminiPayload(messages, context)
 
   async function callGemini() {
@@ -395,6 +426,18 @@ async function handleRequest(event) {
     })
   }
 
+  // Dispara já a primeira tentativa, mas nunca deixa uma falha de REDE (não
+  // um status de erro — uma exceção mesmo, tipo timeout de conexão) estourar
+  // sem tentar de novo. Antes disso, qualquer falha de rede na primeira
+  // chamada ia direto pro catch geral e virava um 500 sem retry nenhum.
+  async function callGeminiSafely() {
+    try {
+      return await callGemini()
+    } catch (networkErr) {
+      return { ok: false, status: 0, _networkError: networkErr, text: async () => String(networkErr) }
+    }
+  }
+
   // Dispara a chamada ao Gemini AGORA, em paralelo com as checagens de
   // perfil/limite diário no Supabase — em vez de esperar o Supabase (que
   // sozinho já leva uns 4s) pra só depois começar a falar com o Gemini. O
@@ -402,7 +445,7 @@ async function handleRequest(event) {
   // limite diário acabar batendo, essa resposta é descartada — o custo é só
   // ter disparado uma chamada à toa nesse caso raro, não afeta o usuário.
   mark('antes da chamada ao Gemini (em paralelo com Supabase)')
-  const geminiPromise = callGemini()
+  const geminiPromise = callGeminiSafely()
 
   let { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')
@@ -464,20 +507,30 @@ async function handleRequest(event) {
   }
 
   try {
-    // O Gemini gratuito às vezes fica sobrecarregado (503 UNAVAILABLE) —
-    // isso é temporário, então tentamos de novo automaticamente 1x antes
-    // de desistir, com uma pequena espera.
-    let upstream = await geminiPromise
-    mark('Gemini respondeu')
+    // O Gemini (gratuito ou não) às vezes retorna erro transitório do lado
+    // dele — 503 UNAVAILABLE (sobrecarregado) ou 500 INTERNAL (erro interno
+    // genérico, listado assim na própria doc de troubleshooting do Gemini,
+    // que recomenda simplesmente tentar de novo). Antes só reentrávamos uma
+    // vez e só pro 503 — o 500 caía direto pro usuário, que tinha que
+    // reenviar a mensagem manualmente. Agora tentamos até 2x extras pros
+    // dois casos, com espera crescente entre tentativas (backoff).
+    const RETRYABLE_STATUS = new Set([0, 500, 503])
+    const RETRY_DELAYS_MS = [800, 1800]
 
-    if (upstream.status === 503) {
-      await new Promise(resolve => setTimeout(resolve, 1200))
-      upstream = await callGemini()
+    let upstream = await geminiPromise
+    mark('Gemini respondeu (tentativa 1)')
+
+    for (let i = 0; i < RETRY_DELAYS_MS.length && RETRYABLE_STATUS.has(upstream.status); i++) {
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAYS_MS[i]))
+      upstream = await callGeminiSafely()
+      mark(`Gemini respondeu (retry ${i + 1}, status anterior era retryable)`)
     }
 
     if (!upstream.ok) {
       const text = await upstream.text()
-      let friendly = 'O assistente está indisponível no momento. Tenta de novo em alguns segundos.'
+      let friendly = upstream.status === 0
+        ? 'Não consegui conectar ao Gemini (conexão instável). Tenta de novo em alguns segundos.'
+        : 'O assistente está indisponível no momento. Tenta de novo em alguns segundos.'
       try {
         const errJson = JSON.parse(text)
         const msg = errJson?.error?.message || errJson?.[0]?.error?.message
@@ -485,7 +538,7 @@ async function handleRequest(event) {
       } catch {
         // mantém a mensagem genérica se não der pra interpretar o erro
       }
-      return jsonResponse(upstream.status === 503 ? 503 : upstream.status, { error: friendly })
+      return jsonResponse(RETRYABLE_STATUS.has(upstream.status) ? 503 : upstream.status, { error: friendly })
     }
 
     const data = await upstream.json()

@@ -163,8 +163,17 @@ const rotinaItems = WEEKDAYS_UTEIS.flatMap(weekday => {
 })
 
 export const defaultData = {
-  version: 5,
+  version: 6,
   values,
   checklistItems: [...valorItems, ...rotinaItems],
-  dailyCycles: {}
+  dailyCycles: {},
+  // Preferências do usuário — a rotina é sempre o padrão fixo da tela "Hoje";
+  // "Valores" pode ser escondido por quem preferir uma tela mais enxuta.
+  settings: {
+    showValues: true,
+    showHabitScorecard: true
+  },
+  // Mapeamento de hábitos "livre" (estilo Hábitos Atômicos): qualquer hábito
+  // que a pessoa tenha, bom ou ruim, sem precisar virar item de checklist.
+  habits: []
 }

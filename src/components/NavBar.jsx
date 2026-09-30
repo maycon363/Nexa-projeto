@@ -1,18 +1,16 @@
 import { useState } from 'react'
 import NexaMark from './NexaMark.jsx'
-import { BellIcon } from './Icons.jsx'
+import { BellIcon, SettingsIcon } from './Icons.jsx'
 
 const TABS = [
   { id: 'hoje', label: 'Hoje' },
   { id: 'historico', label: 'Histórico' },
-  { id: 'mapeamento', label: 'Mapeamento' },
-  { id: 'valores', label: 'Valores' },
   { id: 'aprenda', label: 'Aprenda' },
   { id: 'aprendizado', label: 'Aprendizado' },
   { id: 'sobre', label: 'Sobre' }
 ]
 
-export default function NavBar({ active, onChange, onOpenChangelog }) {
+export default function NavBar({ active, onChange, onOpenChangelog, onOpenSettings }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const activeLabel = TABS.find(t => t.id === active)?.label || ''
 
@@ -30,6 +28,10 @@ export default function NavBar({ active, onChange, onOpenChangelog }) {
 
       <button className="navbar-whatsnew-btn" onClick={onOpenChangelog} aria-label="Novidades">
         <BellIcon size={25} />
+      </button>
+
+      <button className="navbar-whatsnew-btn" onClick={onOpenSettings} aria-label="Configurações">
+        <SettingsIcon size={23} />
       </button>
 
       <div className="navbar-tabs navbar-tabs-desktop">

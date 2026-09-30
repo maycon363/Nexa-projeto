@@ -9,6 +9,13 @@ const DEFAULT_GREETING = {
   content: 'Oi! Eu vejo em qual tela do app você está, então posso ajudar com o que estiver ali na hora, marcar, adicionar, editar ou remover itens, ou só explicar o que você tá vendo.'
 }
 
+// Quantas mensagens (indo do fim pro começo) mandamos de fato pro Gemini a
+// cada pergunta. O log completo continua salvo e visível na tela — isso só
+// limita o que viaja no corpo da requisição. Histórico grande demais é a
+// causa nº1 relatada de erro 500/estouro de contexto no Gemini, então cortar
+// aqui evita boa parte dos erros antes mesmo de chegar no servidor.
+const MAX_HISTORY_MESSAGES_SENT = 16
+
 function chatStorageKey(userId) {
   return `nexa:chatLog:${userId}`
 }
@@ -217,7 +224,7 @@ export default function AICompanion({ data, todayKey, todayWeekday, todayComplet
 
     try {
       const result = await askAssistant({
-        messages: nextLog.map(m => ({ role: m.role, content: m.content })),
+        messages: nextLog.slice(-MAX_HISTORY_MESSAGES_SENT).map(m => ({ role: m.role, content: m.content })),
         context: buildContext()
       })
       const failures = applyActions(result.actions)

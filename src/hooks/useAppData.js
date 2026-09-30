@@ -168,6 +168,58 @@ export function useAppData(userId) {
     return id
   }, [])
 
+  // Apaga um valor (tópico) inteiro e todos os itens de checklist ligados a
+  // ele — diferente de removeChecklistItem, que apaga só um item por vez.
+  // É a "lixeira por tópico" pedida: some com aquele valor específico, sem
+  // mexer nos outros.
+  const removeValue = useCallback((valueId) => {
+    setData(prev => (prev ? {
+      ...prev,
+      values: prev.values.filter(v => v.id !== valueId),
+      checklistItems: prev.checklistItems.filter(i => !(i.kind === 'valor' && i.valueId === valueId))
+    } : prev))
+  }, [])
+
+  // Preferências (mostrar/esconder seções etc). Faz merge raso — só precisa
+  // passar as chaves que estão mudando.
+  const updateSettings = useCallback((patch) => {
+    setData(prev => (prev ? {
+      ...prev,
+      settings: { ...(prev.settings || {}), ...patch }
+    } : prev))
+  }, [])
+
+  // ---- Mapeamento de hábitos livre (estilo "cartão de hábitos" do livro) ----
+  // Cada hábito aqui é independente do checklist de rotina/valores: a pessoa
+  // só descreve o hábito (ex: "lavar as mãos depois do banheiro") e classifica
+  // (ou deixa a IA classificar) como bom, ruim ou neutro.
+  const addHabit = useCallback((text) => {
+    const id = uniqueId('habit')
+    const habit = { id, text, classification: null, note: '', createdAt: new Date().toISOString() }
+    setData(prev => (prev ? { ...prev, habits: [...(prev.habits || []), habit] } : prev))
+    return id
+  }, [])
+
+  const removeHabit = useCallback((habitId) => {
+    setData(prev => (prev ? {
+      ...prev,
+      habits: (prev.habits || []).filter(h => h.id !== habitId)
+    } : prev))
+  }, [])
+
+  // classification: 'bom' | 'ruim' | 'neutro'. source: 'ia' | 'manual' — só
+  // pra saber depois se foi a pessoa ou o assistente quem classificou.
+  const classifyHabit = useCallback((habitId, classification, source = 'manual', note = undefined) => {
+    setData(prev => (prev ? {
+      ...prev,
+      habits: (prev.habits || []).map(h => (
+        h.id === habitId
+          ? { ...h, classification, classifiedBy: source, ...(note !== undefined ? { note } : {}) }
+          : h
+      ))
+    } : prev))
+  }, [])
+
   const addValorItem = useCallback((valueId, text) => {
     const id = uniqueId(valueId)
     setData(prev => (prev ? {
@@ -296,8 +348,10 @@ export function useAppData(userId) {
   return {
     data, todayKey, dayFor, loading, error,
     toggleItem, setNote,
-    addValue, addValorItem, addRotinaItem, addSubTask, removeChecklistItem,
+    addValue, removeValue, addValorItem, addRotinaItem, addSubTask, removeChecklistItem,
     updateItemText, updateItemTime, moveItem,
+    updateSettings,
+    addHabit, removeHabit, classifyHabit,
     progressForValue, exportJSON, importJSON
   }
 }

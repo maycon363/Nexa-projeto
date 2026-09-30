@@ -59,6 +59,78 @@ export default function AboutView() {
       </section>
 
       <section className="value-section">
+        <h3 className="about-subtitle">Configurações e o que mostrar na tela Hoje</h3>
+        <p className="about-p">
+          O ícone de engrenagem na navbar abre as Configurações. A rotina é sempre o
+          padrão fixo da tela Hoje, não dá pra esconder ela, mas dois blocos são
+          opcionais: a seção <strong>Valores</strong> e o cartão de
+          <strong> Mapeamento de hábitos</strong>. Desliga o que não usa, a escolha
+          fica salva na sua conta.
+        </p>
+      </section>
+
+      <section className="value-section">
+        <h3 className="about-subtitle">Mapeamento de hábitos</h3>
+        <p className="about-p">
+          Inspirado no "cartão de hábitos" do livro <em>Hábitos Atômicos</em>: a ideia é
+          listar, sem filtro, qualquer hábito automático que você tenha, tanto os bons
+          quanto os ruins, porque o primeiro passo pra mudar um comportamento é
+          conseguir enxergar ele com clareza. Escreve o hábito (ex: "lavar as mãos
+          depois do banheiro" ou "checar o celular assim que acordo") e classifica como
+          Bom, Ruim ou Neutro, na mão ou tocando em <strong>Perguntar à IA</strong>, que
+          analisa e sugere uma classificação com uma frase curta explicando o porquê.
+          Fica salvo no cartão, contando quantos hábitos bons e ruins você já mapeou.
+        </p>
+      </section>
+
+      <section className="value-section">
+        <h3 className="about-subtitle">Apagar um valor inteiro</h3>
+        <p className="about-p">
+          Cada Valor na tela Hoje tem um ícone de lixeira próprio. Ele apaga só aquele
+          valor específico e todos os itens de checklist dele, os outros valores
+          continuam intactos. Sempre pede confirmação antes, porque a ação não tem
+          como ser desfeita.
+        </p>
+      </section>
+
+      <section className="value-section">
+        <h3 className="about-subtitle">Solicitar acesso</h3>
+        <p className="about-p">
+          O Nexa é fechado por convite (precisa de um código pra criar conta). Quem não
+          tem esse código, seja um amigo ou um recrutador dando uma olhada no projeto,
+          encontra um link "Solicitar acesso por e-mail" na tela de login, que já abre
+          o e-mail pronto pra me pedir liberação.
+        </p>
+      </section>
+
+      <section className="value-section">
+        <h3 className="about-subtitle">Exportar e importar seus dados (JSON)</h3>
+        <p className="about-p">
+          No rodapé do app existem dois botões: <strong>Exportar JSON</strong> baixa um
+          arquivo <code>.json</code> com tudo que está na sua conta hoje — rotina,
+          valores e seus itens, os hábitos do mapeamento, e o histórico de dias já
+          marcados. É basicamente uma cópia de segurança completa dos seus dados, num
+          arquivo de texto que você guarda onde quiser (Google Drive, e-mail pra você
+          mesmo, pendrive).
+        </p>
+        <p className="about-p">
+          <strong>Importar JSON</strong> faz o caminho contrário: você escolhe um
+          arquivo <code>.json</code> exportado (pelo Nexa) e ele <strong>substitui os
+          seus dados atuais</strong> pelos que estão no arquivo. Serve pra restaurar um
+          backup antigo ou pra levar seus dados de um navegador/celular pra outro sem
+          perder nada. Por apagar o que está atualmente salvo, só importa um arquivo se
+          tiver certeza que é o que você quer — não tem confirmação extra nem como
+          desfazer depois de importado (exporta o estado atual antes, se quiser manter
+          os dois como opção).
+        </p>
+        <p className="about-p" style={{ marginBottom: 0 }}>
+          O arquivo não é criptografado, então evita compartilhar ele com estranhos —
+          qualquer pessoa que abrir esse <code>.json</code> consegue ler tudo que está
+          escrito nele.
+        </p>
+      </section>
+
+      <section className="value-section">
         <h3 className="about-subtitle">O papel da IA</h3>
         <p className="about-p">
           O assistente não está aqui só pra dar dica ou bater papo, ele existe pra

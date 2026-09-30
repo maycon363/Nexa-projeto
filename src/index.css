@@ -1845,3 +1845,58 @@ button { font-family: inherit; }
   .sub-item { padding-left: 20px; }
   .item-expand { width: 32px; height: 32px; }
 }
+/* ---- V1.0: Settings modal ---- */
+.settings-modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  width: min(420px, 92vw);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.settings-intro { color: var(--color-gray); font-size: 0.9rem; margin: 4px 0 16px; }
+.settings-toggle-row {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 12px 0; border-top: 1px solid var(--color-border);
+}
+.settings-toggle-title { display: block; font-weight: 600; }
+.settings-toggle-desc { display: block; color: var(--color-gray); font-size: 0.82rem; margin-top: 2px; }
+.settings-toggle-row input[type="checkbox"] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--color-green); margin-top: 3px; }
+
+/* ---- V1.0: apagar valor (tópico) inteiro ---- */
+.value-section-wrap { position: relative; }
+.value-section-delete {
+  position: absolute; top: 14px; right: 14px; z-index: 2;
+  background: transparent; border: none; color: var(--color-gray-soft);
+  cursor: pointer; padding: 6px; border-radius: 8px;
+}
+.value-section-delete:hover { color: #e5555a; background: var(--color-surface-alt); }
+
+/* ---- V1.0: Habit Scorecard (mapeamento livre na tela Hoje) ---- */
+.habit-scorecard-list { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+.habit-scorecard-row {
+  list-style: none; background: var(--color-surface-alt); border: 1px solid var(--color-border);
+  border-radius: 10px; padding: 10px 12px;
+}
+.habit-scorecard-row-main { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.habit-scorecard-text { font-weight: 500; }
+.habit-scorecard-note { color: var(--color-gray); font-size: 0.82rem; margin: 6px 0 0; }
+.tone-critical-text { color: #e5555a; }
+.habit-scorecard-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.habit-scorecard-pill {
+  border: 1px solid var(--color-border); background: transparent; color: var(--color-gray);
+  border-radius: 999px; padding: 5px 10px; font-size: 0.78rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.habit-scorecard-pill.active { background: var(--color-green-dim); border-color: var(--color-green); color: var(--color-green-bright); }
+.habit-scorecard-ai { border-color: var(--color-green); color: var(--color-green-bright); }
+.habit-scorecard-ai:disabled { opacity: 0.6; cursor: default; }
+
+/* ---- V1.0: solicitar acesso no login ---- */
+.auth-request-access {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: 14px; font-size: 0.82rem; color: var(--color-gray);
+  text-decoration: none; border-top: 1px solid var(--color-border); padding-top: 14px;
+}
+.auth-request-access:hover { color: var(--color-green-bright); }

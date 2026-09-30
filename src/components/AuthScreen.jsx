@@ -1,6 +1,24 @@
 import { useState } from 'react'
 import NexaMark from './NexaMark.jsx'
 import { signUpWithInvite } from '../services/signupService.js'
+import { MailIcon } from './Icons.jsx'
+
+// TODO: troque pelo seu e-mail de verdade antes de publicar.
+const ACCESS_REQUEST_EMAIL = 'seuemail@exemplo.com'
+
+function buildAccessRequestMailto() {
+  const subject = 'Solicitação de acesso ao Nexa'
+  const body = [
+    'Olá!',
+    '',
+    'Gostaria de solicitar um código de convite para acessar o Nexa.',
+    '',
+    'Meu nome: ',
+    'Eu sou (amigo / recrutador / outro): ',
+    'Link do LinkedIn (se for recrutador): '
+  ].join('\n')
+  return `mailto:${ACCESS_REQUEST_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+}
 
 export default function AuthScreen({ onSignIn }) {
   const [mode, setMode] = useState('signin') 
@@ -119,6 +137,11 @@ export default function AuthScreen({ onSignIn }) {
         >
           {mode === 'signin' ? 'Não tem conta? Criar uma' : 'Já tem conta? Entrar'}
         </button>
+
+        <a className="auth-request-access" href={buildAccessRequestMailto()}>
+          <MailIcon size={14} />
+          Não tem código de convite? Solicitar acesso por e-mail
+        </a>
       </div>
     </div>
   )

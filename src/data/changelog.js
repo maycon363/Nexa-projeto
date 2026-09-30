@@ -6,6 +6,19 @@
 
 export const CHANGELOG = [
   {
+    id: 7,
+    date: '2026-09-29',
+    title: 'V1.0: Configurações, Mapeamento de hábitos e mais confiabilidade',
+    items: [
+      'Nova tela de Configurações (ícone de engrenagem na navbar): escolha se a seção "Valores" e o "Mapeamento de hábitos" aparecem junto com a rotina na tela Hoje, a rotina continua sempre fixa.',
+      'Novo Mapeamento de hábitos na tela Hoje: liste qualquer hábito seu, bom ou ruim, e classifique manualmente ou peça pra IA analisar, inspirado no cartão de hábitos do livro Hábitos Atômicos.',
+      'Nova lixeira em cada Valor: apaga só aquele valor específico e os itens dele, com confirmação antes, sem afetar os outros.',
+      'Tela de login agora tem um link pra solicitar acesso por e-mail, pra quem ainda não tem um código de convite.',
+      'Assistente mais confiável: erros passageiros do Gemini (500/503) agora são reprocessados automaticamente, sem você precisar reenviar a mensagem, e a classificação de hábitos ficou mais rápida e estável.',
+      'As antigas abas separadas "Valores" e "Mapeamento" saíram da navbar, tudo isso agora vive dentro da tela Hoje.'
+    ]
+  },
+  {
     id: 6,
     date: '2026-08-24',
     title: 'Assistente reconstruído por baixo dos panos',
