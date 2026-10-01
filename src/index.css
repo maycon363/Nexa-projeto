@@ -1895,9 +1895,14 @@ button { font-family: inherit; }
 
 /* ---- V1.0: solicitar acesso no login ---- */
 .auth-request-access {
+  /* Reset de estilo nativo de <button> — sem isso o navegador aplica o
+     fundo cinza/borda padrão por cima do que definimos abaixo. */
+  appearance: none; -webkit-appearance: none; background: none; border: none;
+  width: 100%; font: inherit; cursor: pointer;
+
   display: flex; align-items: center; justify-content: center; gap: 6px;
   margin-top: 14px; font-size: 0.82rem; color: var(--color-gray);
-  text-decoration: none; border-top: 1px solid var(--color-border); padding-top: 14px;
+  text-decoration: none; border-top: 1px solid var(--color-border); padding: 14px 0 0;
 }
 .auth-request-access:hover { color: var(--color-green-bright); }
 
