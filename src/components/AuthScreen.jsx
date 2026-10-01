@@ -6,18 +6,85 @@ import { MailIcon } from './Icons.jsx'
 // TODO: troque pelo seu e-mail de verdade antes de publicar.
 const ACCESS_REQUEST_EMAIL = 'seuemail@exemplo.com'
 
-function buildAccessRequestMailto() {
-  const subject = 'Solicitação de acesso ao Nexa'
-  const body = [
-    'Olá!',
-    '',
-    'Gostaria de solicitar um código de convite para acessar o Nexa.',
-    '',
-    'Meu nome: ',
-    'Eu sou (amigo / recrutador / outro): ',
-    'Link do LinkedIn (se for recrutador): '
-  ].join('\n')
-  return `mailto:${ACCESS_REQUEST_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+const ACCESS_REQUEST_SUBJECT = 'Solicitação de acesso ao Nexa'
+const ACCESS_REQUEST_BODY = [
+  'Olá!',
+  '',
+  'Gostaria de solicitar um código de convite para acessar o Nexa.',
+  '',
+  'Meu nome: ',
+  'Eu sou (amigo / recrutador / outro): ',
+  'Link do LinkedIn (se for recrutador): '
+].join('\n')
+
+// mailto: sozinho falha silenciosamente em muito PC — quem usa Gmail/Outlook
+// pelo navegador não tem programa de e-mail padrão configurado, então o
+// clique não faz nada visível. Por isso oferecemos 3 caminhos: app de
+// e-mail (ótimo no celular), Gmail/Outlook direto no navegador (ótimo no
+// PC), e copiar o endereço como último recurso — sempre funciona em algum.
+function buildMailtoLink() {
+  return `mailto:${ACCESS_REQUEST_EMAIL}?subject=${encodeURIComponent(ACCESS_REQUEST_SUBJECT)}&body=${encodeURIComponent(ACCESS_REQUEST_BODY)}`
+}
+
+function buildGmailWebLink() {
+  const params = new URLSearchParams({
+    view: 'cm', fs: '1', to: ACCESS_REQUEST_EMAIL, su: ACCESS_REQUEST_SUBJECT, body: ACCESS_REQUEST_BODY
+  })
+  return `https://mail.google.com/mail/?${params.toString()}`
+}
+
+function buildOutlookWebLink() {
+  const params = new URLSearchParams({
+    to: ACCESS_REQUEST_EMAIL, subject: ACCESS_REQUEST_SUBJECT, body: ACCESS_REQUEST_BODY
+  })
+  return `https://outlook.live.com/mail/0/deeplink/compose?${params.toString()}`
+}
+
+function AccessRequestModal({ onClose }) {
+  const [copied, setCopied] = useState(false)
+
+  async function copyEmail() {
+    try {
+      await navigator.clipboard.writeText(ACCESS_REQUEST_EMAIL)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // clipboard bloqueado (raro) — a pessoa ainda vê o e-mail escrito na tela
+    }
+  }
+
+  return (
+    <div className="confirm-overlay" onClick={onClose}>
+      <div className="settings-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="whatsnew-head">
+          <span className="whatsnew-title">Solicitar acesso</span>
+          <button className="chat-drawer-close" onClick={onClose} aria-label="Fechar">✕</button>
+        </div>
+
+        <p className="settings-intro">
+          Escolha o jeito que funcionar melhor pra você — no celular, "Abrir no app de
+          E-mail" já resolve; no computador, geralmente é mais fácil pelo Gmail/Outlook.
+        </p>
+
+        <div className="access-request-options">
+          <a className="access-request-option" href={buildMailtoLink()}>
+            Abrir no app de E-mail
+          </a>
+          <a className="access-request-option" href={buildGmailWebLink()} target="_blank" rel="noopener noreferrer">
+            Abrir no Gmail (navegador)
+          </a>
+          <a className="access-request-option" href={buildOutlookWebLink()} target="_blank" rel="noopener noreferrer">
+            Abrir no Outlook (navegador)
+          </a>
+          <button type="button" className="access-request-option" onClick={copyEmail}>
+            {copied ? 'E-mail copiado!' : `Copiar e-mail (${ACCESS_REQUEST_EMAIL})`}
+          </button>
+        </div>
+
+        <button className="whatsnew-confirm" onClick={onClose}>Fechar</button>
+      </div>
+    </div>
+  )
 }
 
 export default function AuthScreen({ onSignIn }) {
@@ -30,6 +97,7 @@ export default function AuthScreen({ onSignIn }) {
   const [linkedinUrl, setLinkedinUrl] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [accessRequestOpen, setAccessRequestOpen] = useState(false)
 
   async function submit(e) {
     e.preventDefault()
@@ -138,11 +206,17 @@ export default function AuthScreen({ onSignIn }) {
           {mode === 'signin' ? 'Não tem conta? Criar uma' : 'Já tem conta? Entrar'}
         </button>
 
-        <a className="auth-request-access" href={buildAccessRequestMailto()}>
+        <button
+          type="button"
+          className="auth-request-access"
+          onClick={() => setAccessRequestOpen(true)}
+        >
           <MailIcon size={14} />
           Não tem código de convite? Solicitar acesso por e-mail
-        </a>
+        </button>
       </div>
+
+      {accessRequestOpen && <AccessRequestModal onClose={() => setAccessRequestOpen(false)} />}
     </div>
   )
 }

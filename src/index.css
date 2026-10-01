@@ -1900,3 +1900,14 @@ button { font-family: inherit; }
   text-decoration: none; border-top: 1px solid var(--color-border); padding-top: 14px;
 }
 .auth-request-access:hover { color: var(--color-green-bright); }
+
+/* ---- V1.0: modal de solicitar acesso (vários jeitos de mandar o e-mail) ---- */
+.access-request-options { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 16px; }
+.access-request-option {
+  display: block; width: 100%; text-align: left; box-sizing: border-box;
+  background: var(--color-surface-alt); border: 1px solid var(--color-border);
+  color: var(--color-white); border-radius: 10px; padding: 11px 14px;
+  font-size: 0.88rem; font-family: var(--font-body); cursor: pointer;
+  text-decoration: none;
+}
+.access-request-option:hover { border-color: var(--color-green); color: var(--color-green-bright); }
