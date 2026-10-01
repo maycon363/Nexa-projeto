@@ -4,7 +4,7 @@ import { signUpWithInvite } from '../services/signupService.js'
 import { MailIcon } from './Icons.jsx'
 
 // TODO: troque pelo seu e-mail de verdade antes de publicar.
-const ACCESS_REQUEST_EMAIL = 'seuemail@exemplo.com'
+const ACCESS_REQUEST_EMAIL = 'mayconborges2025@gmail.com'
 
 const ACCESS_REQUEST_SUBJECT = 'Solicitação de acesso ao Nexa'
 const ACCESS_REQUEST_BODY = [
